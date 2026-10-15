@@ -1,13 +1,29 @@
 # Progress
 
 ## Current state
-Phase: P0   Last done: P0-03   Next: P0-04
+Phase: P0   Last done: P0-04   Next: P0-05
 Blockers: none
 Open decisions: cloud provider, region, and managed AI services are TBD by
 decision (PRD §19.1), due before P1-04. Retention is settled: account mode only.
 Every other PRD §19 item is answered — see the log.
 
 ## Log (newest first)
+
+### P0-04 — 2026-10-15 (done)
+Did: split the old P0-04 in PLAN.md into P0-04 (backend) and P0-05 (frontend), then
+built the backend skeleton.
+Files: backend/pyproject.toml, backend/app/__init__.py, backend/app/main.py,
+backend/tests/test_health.py, .gitignore
+Verified: every "done when" command was run, not assumed. `uv sync` resolved the
+environment. `uv run pytest` passed 1 test. `uv run ruff check .` reported "All checks
+passed". `uv run uvicorn` started, answered GET /health with 200 and
+{"status":"ok"}, and was then stopped cleanly.
+Notes: a root .gitignore was added beyond the file list in PLAN.md, so .venv and
+later node_modules stay out of the repository. Four files rather than the usual 1-3,
+but a single concern. uv.lock is committed, because an application should pin its
+versions.
+One harmless warning: starlette 1.8.0 reports that its TestClient prefers `httpx2`
+over `httpx`. No action taken; revisit if it becomes a failure.
 
 ### P0-03 — 2026-10-15 (done)
 Did: the user chose option B. AGENTS.md now carries the stack, folder structure,
