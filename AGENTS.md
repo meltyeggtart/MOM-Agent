@@ -14,7 +14,8 @@ Separate from every other project. Never reuse their code, config, or credential
 - No extra features or refactors. Park ideas in PROGRESS.md > Parking lot.
 - If a decision is open, ask. Do not guess.
 - Size limit: one concern, normally 1-3 files, verifiable in minutes (PRD §22.3).
-- Commit after every verified step, so the repo is the checkpoint (PRD §22.11).
+- Commit after every verified step, on one branch per phase, so the repo is the
+  checkpoint (PRD §22.11). Push only on an explicit instruction.
 
 OpenHands auto-loads only this file. PLAN.md and PROGRESS.md are not loaded
 automatically, so open them at the start of every step.
