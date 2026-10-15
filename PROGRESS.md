@@ -1,38 +1,30 @@
 # Progress
 
 ## Current state
-Phase: P0   Last done: P0-02   Next: P0-03 (awaiting stack decision)
-Blockers: P0-03 needs the stack decision (PRD §12). The options and a
-recommendation are recorded in the log.
+Phase: P0   Last done: P0-03   Next: P0-04
+Blockers: none
 Open decisions: cloud provider, region, and managed AI services are TBD by
 decision (PRD §19.1), due before P1-04. Retention is settled: account mode only.
 Every other PRD §19 item is answered — see the log.
 
 ## Log (newest first)
 
-### P0-03 — 2026-10-15 (in progress, awaiting stack decision)
-Did: analysed the stack options against PRD §12, §13, §15. No file written yet,
-because the choice is the user's and the step's "done when" is AGENTS.md filled in.
-Blocked on: the stack decision. Recorded as a blocker per PRD §22.3 instead of
-guessing.
-
-Options considered:
-- A. TypeScript end to end (Next.js with Node API routes). One toolchain, one
-  deploy, easiest to keep working. Weakest link is document generation: DOCX with
-  the `docx` package is workable, but PDF needs headless Chromium (heavy container,
-  slow cold start) or the low-level `pdfkit`, which is painful for bilingual tables.
-- B. Python backend plus TypeScript frontend (FastAPI + React SPA). Best fit for the
-  two riskiest parts: python-docx and WeasyPrint produce DOCX and PDF with proper
-  CJK font embedding, and the speech and LLM SDKs are first class in Python. Cost is
-  two toolchains, two dependency sets, two deploys.
-- C. Python only, server rendered (FastAPI plus templates, a small vanilla JS
-  recorder). Fewest moving parts and one language. Hurts at Phase 2 and Phase 3,
-  where the live transcript and translation UI needs a real frontend.
-
-Recommendation recorded: B. All three are cloud agnostic, so the choice does not
-constrain the deferred cloud decision.
-
-Needed to unblock: the user picks A, B, or C. Then this step fills AGENTS.md.
+### P0-03 — 2026-10-15 (done)
+Did: the user chose option B. AGENTS.md now carries the stack, folder structure,
+commands, and conventions. Also fixed the stale "fixed by P0-03" path placeholders in
+PLAN.md and gave P0-04 concrete files to create.
+Files: AGENTS.md, PLAN.md
+Verified: checked the toolchain on this machine before writing any command, instead
+of assuming: Python 3.13.15, uv 0.12.15, Node 24.21.0, npm 11.19.1, git 2.47.3, and
+libpango plus libcairo present for WeasyPrint. The commands themselves are exercised
+in P0-04, which is that step's job.
+Notes: uv over plain venv and pip, because it is already installed at /usr/bin/uv and
+gives a lockfile. Python 3.13 to match this machine.
+Options considered and rejected: A. TypeScript end to end — the bilingual DOCX and
+PDF export, which is a whole Phase 1 step, would land on the weakest part of the Node
+document tooling (headless Chromium, or the low-level pdfkit). C. Python only, server
+rendered — the live transcript and translation UI in Phase 2 and 3 needs a real
+frontend.
 
 ### P0-02 — 2026-10-15 (done)
 Did: recorded the cloud decision state in AGENTS.md. The user chose a placeholder,
