@@ -20,30 +20,66 @@ Separate from every other project. Never reuse their code, config, or credential
 OpenHands auto-loads only this file. PLAN.md and PROGRESS.md are not loaded
 automatically, so open them at the start of every step.
 
-## Tech stack (fill after the stack decision step)
-Cloud provider, region, managed AI services: TBD — a placeholder was accepted on
-2026-10-15 (P0-02). Not decided yet. Settle it before P1-04 (secure storage) and
-P1-05 (speech-to-text), weighing speech-service availability and EN/ZH
-code-switching quality, latency, regional availability, privacy terms, and cost
-(PRD §12, §19.1).
+## Tech stack
+Decided 2026-10-15 (P0-03).
+- Backend: Python 3.13, FastAPI, SQLAlchemy, Alembic, Pydantic.
+- Frontend: TypeScript, React, Vite. A plain SPA; the backend serves JSON only.
+- Database: PostgreSQL.
+- Files: object storage.
+- Speech, translation, LLM: managed APIs, called from the backend only.
+- Documents: python-docx for DOCX, WeasyPrint for PDF.
+- Jobs: a background worker for post-meeting processing.
+- Tests: pytest (backend), Vitest (frontend).
+- Lint and format: Ruff (backend), ESLint and Prettier (frontend).
+- Tooling: uv for Python, npm for Node.
 
-Language, framework, runtime: not decided. P0-03 picks these and fills in Folder
-structure and Commands below.
+Why this split: document generation and the speech and LLM SDKs are strongest in
+Python, while the meeting screen, live transcript, and review UI need a real
+frontend (PRD §12, §13).
+
+Still TBD: cloud provider, region, and managed AI services (P0-02). Settle before
+P1-04 and P1-05. This stack is cloud agnostic; the queue and storage products follow
+that choice.
 
 ## Folder structure
-Not decided. Set by P0-03, created by P0-04.
+Two apps in one repository, deployed separately. Created in P0-04.
+
+    backend/app/           FastAPI application
+    backend/app/api/       HTTP routes
+    backend/app/core/      settings and logging
+    backend/app/db/        models and migrations
+    backend/app/services/  speech, translation, LLM, documents
+    backend/tests/         pytest tests
+    frontend/src/          React SPA
+    frontend/src/i18n/     English and Mandarin strings
+    docs/                  project documents
 
 ## Commands (install, run, test, lint, build)
-Not decided. Set by P0-03, verified by P0-04.
+Written in P0-03, verified in P0-04.
+
+Backend, run from `backend/`:
+- install: `uv sync`
+- run:     `uv run uvicorn app.main:app --reload`
+- test:    `uv run pytest`
+- lint:    `uv run ruff check .`
+- format:  `uv run ruff format .`
+
+Frontend, run from `frontend/`:
+- install: `npm install`
+- run:     `npm run dev`
+- test:    `npm run test`
+- lint:    `npm run lint`
+- build:   `npm run build`
 
 ## Conventions (naming, error handling, logging, i18n EN/ZH)
-Not decided. Set by P0-03.
-
-Fixed constraints that do not depend on the stack choice:
-- User-facing text is offered in English and Mandarin.
-- Each MOM carries English and Mandarin in the same document (PRD §8.1, §8.4).
-- Application logs stay free of raw audio, transcript text, credentials, and
-  confidential payloads (PRD §11.2).
+- Naming: snake_case in Python, camelCase in TypeScript, kebab-case for file names.
+- Errors: typed exceptions in services, one JSON error shape from the API, and no
+  silently swallowed exceptions.
+- Logging: structured logs at the API boundary. Never log raw audio, transcript
+  text, credentials, or MOM content (PRD §11.2).
+- i18n: user-facing text lives in frontend string files with matching English and
+  Mandarin keys. Each MOM carries both languages in one document (PRD §8.1, §8.4).
+- Prompts: audience-specific MOM prompts live in the backend, versioned with the code.
 
 ## Product guardrails
 - External MOM must never contain internal-only content (PRD §8.5, §11.3).
