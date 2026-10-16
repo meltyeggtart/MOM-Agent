@@ -1,13 +1,33 @@
 # Progress
 
 ## Current state
-Phase: P0   Last done: P0-04   Next: P0-05
+Phase: P0 complete (P0-01 to P0-05). Last done: P0-05
+Next: a planning pass to fill the P1 file paths, then P1-01
 Blockers: none
 Open decisions: cloud provider, region, and managed AI services are TBD by
 decision (PRD §19.1), due before P1-04. Retention is settled: account mode only.
 Every other PRD §19 item is answered — see the log.
 
 ## Log (newest first)
+
+### P0-05 — 2026-10-15 (done)
+Did: scaffolded the frontend with create-vite (react-ts) and replaced the delivered
+demo with a minimal page. Phase 0 is complete.
+Files: frontend/ (17 files)
+Verified: every "done when" command was run. `npm install` added 160 packages with 0
+vulnerabilities. `npm run build` exited 0 and wrote dist/. `npm run lint` exited 0
+with no findings. `npm run dev` answered HTTP 200 with the new title, and served
+src/App.tsx transformed, carrying the new page text.
+Notes: create-vite v8 now defaults to Oxlint; I passed --eslint to keep the stack
+AGENTS.md records. Worth revisiting if the faster linter is ever wanted.
+Removed as part of "a minimal page": the demo App.css, src/assets/ (hero.png,
+react.svg, vite.svg), public/icons.svg, and the scaffold README.md.
+AGENTS.md now marks the frontend `npm run test` line as not wired, because this
+step's scope was install, dev, build, and lint only.
+Sandbox quirk: the Vite dev server binds localhost over IPv6, so a check against
+127.0.0.1 fails unless it is started with `--host 127.0.0.1`.
+Scaffolding quirk: `npm create vite@latest` now stops to ask which linter to use, so
+the non-interactive form needs `--no-interactive --eslint --no-immediate`.
 
 ### P0-04 — 2026-10-15 (done)
 Did: split the old P0-04 in PLAN.md into P0-04 (backend) and P0-05 (frontend), then

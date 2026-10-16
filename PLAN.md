@@ -31,7 +31,7 @@ P0-05).
   PRD: §12   Files: backend/pyproject.toml, backend/app/main.py, backend/tests/
   Done when: uv sync, uv run uvicorn, uv run pytest, and uv run ruff check work.
 
-- [ ] P0-05  Frontend skeleton: Vite React app that starts and builds
+- [x] P0-05  Frontend skeleton: Vite React app that starts and builds
   PRD: §12   Files: frontend/ (Vite scaffold plus a minimal page)
   Done when: npm install, npm run dev, npm run build, and npm run lint work.
   Split from the original P0-04 on 2026-10-15: one skeleton was two concerns and
