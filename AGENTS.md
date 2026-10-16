@@ -67,9 +67,9 @@ Backend, run from `backend/`:
 Frontend, run from `frontend/`:
 - install: `npm install`
 - run:     `npm run dev`
-- test:    `npm run test`
 - lint:    `npm run lint`
 - build:   `npm run build`
+- test:    not wired yet. Vitest arrives with the first frontend test step.
 
 ## Conventions (naming, error handling, logging, i18n EN/ZH)
 - Naming: snake_case in Python, camelCase in TypeScript, kebab-case for file names.
