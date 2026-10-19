@@ -60,13 +60,19 @@ frontend (PRD §12, §13).
 
 Settled 2026-10-19: audio storage is AWS S3 in the Singapore region, recordings are
 kept for 90 days from upload with the owner able to delete sooner, and speech is Amazon
-Transcribe in production. Neither AWS driver is written yet, because no credentials
+Transcribe in production. Neither cloud driver is verified yet, because no credentials
 exist in the working environment. Until then `app/services/storage.py` writes to a
 local directory and `app/services/speech.py` runs a local Whisper model. Both are
 single-method seams, so swapping a driver touches one file. The local model is `small`,
 the first size that handles Mandarin and English code-switching acceptably; `tiny`
 garbled Mandarin badly. Still TBD: the LLM for MOM generation, due before P1-08. The
 queue and the remaining products follow those choices.
+
+On 2026-10-19 the speech seam also gained a Huawei Cloud SIS driver, selected with
+`SPEECH_PROVIDER=huawei`, because the customer asked whether the whole stack could run
+on Huawei. It has never called the live service: there are no Huawei credentials here.
+Its job body and response mapping are tested, but whether SIS switches language inside
+one file is unproven. Test it with a real recording before treating Huawei as settled.
 
 ## Folder structure
 Two apps in one repository, deployed separately. Created in P0-04.

@@ -1,15 +1,33 @@
 # Progress
 
 ## Current state
-Phase: P1. Last done: P1-06
+Phase: P1. Last done: P1-06b (Huawei SIS scaffold)
 Next: P1-07
 Blockers: none
 Open decisions: the LLM for MOM generation is still TBD (PRD §19.1), due before P1-08.
 Storage is settled: AWS S3 in Singapore. Retention is settled: 90 days from upload,
 and account mode only. Speech is settled: Amazon Transcribe. Every other PRD §19 item
-is answered — see the log.
+is answered — see the log. A Huawei SIS driver now exists as an alternative, but it has
+never run against the live service, so the provider is not settled by evidence yet.
 
 ## Log (newest first)
+
+### P1-06b — 2026-10-19 (scaffold, never run against the live service)
+Did: added a Huawei Cloud speech driver behind the same seam. `SPEECH_PROVIDER=huawei`
+selects SIS batch recognition; the default stays `whisper`, so behavior is unchanged
+until the variable is set. The driver uploads the audio to OBS, submits a transcriber
+job, polls it, maps segments, and deletes the temporary object. SIS accepts files up to
+5 hours and 300 MB and keeps results for 72 hours, which covers the 75-minute recording.
+Files: backend/app/services/speech.py, backend/app/core/settings.py,
+backend/tests/test_huawei.py, backend/.env.example, backend/pyproject.toml
+Verified: 28 tests pass (6 new) and ruff is clean. The new tests build a real SIS job
+body and parse a real response model, so the request and response mapping is covered.
+Missing credentials fail before anything is uploaded.
+Notes: no Huawei credentials exist here, so the driver has never called the live API.
+`auto_language_detect` exists in the job body, but whether SIS switches language inside
+a single file is unproven; it may only choose one language per job. The Jakarta region
+could not be confirmed from public pages; only Singapore appeared. The model default is
+`chinese_16k_conversation`; `english_16k_common` is the English alternative.
 
 ### P1-06 — 2026-10-19 (done)
 Did: Mandarin and mixed-language transcription. The worker no longer assumes English.
