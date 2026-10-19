@@ -33,12 +33,14 @@ Setiap notulen memuat dua bahasa dalam satu dokumen.
 
 ## 4. Bagaimana pekerjaan dibagi
 
-### Tahap 0 — Persiapan
+### Tahap 0 — Persiapan (sudah selesai)
 Menyepakati hal-hal dasar sebelum menulis kode apa pun: dokumen aturan kerja,
-pilihan penyedia layanan internet dan layanan AI, pilihan teknologi, lalu
-menyiapkan kerangka proyek kosong yang bisa dijalankan.
+pilihan teknologi, dan kerangka proyek kosong yang bisa dijalankan. Pilihan
+penyedia layanan internet dan layanan AI juga dibahas di sini, tapi hasilnya
+ditunda.
 
-Yang kamu lihat setelah tahap ini: belum ada aplikasi yang bisa dipakai.
+Tahap ini sudah selesai. Kerangka aplikasinya sudah bisa dijalankan, tapi belum ada
+layar yang bisa dipakai.
 
 ### Tahap 1 — Inti produk: dari rekaman jadi notulen
 Ini tahap yang menghasilkan nilai utama.

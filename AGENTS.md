@@ -6,6 +6,27 @@ Internal MOM and External MOM. Full spec: `PRD_AI_MEETING_AGENT_v2.1_FINAL.docx`
 (repo root). The build workflow is defined in that document, Section 22.
 Separate from every other project. Never reuse their code, config, or credentials.
 
+## Talking to the user (read before writing any message)
+The user does not have an IT background. This section covers anything written for the
+user. PLAN.md, PROGRESS.md, and the rest of this file are read by the agent, so they
+stay precise and technical.
+
+- Write to the user in Indonesian, with short sentences and everyday words. Code,
+  comments, commit messages, and file contents stay in English.
+- Explain a technical term once, in a few words, the first time it appears. Do not
+  re-explain it later.
+- Report a problem as: what went wrong, what I did about it, what it means for the
+  user. Never paste a command dump or a log excerpt as the explanation.
+- When a decision is needed, offer two or three options with the consequences in
+  plain words, then name a recommendation. Never hand over a bare list of
+  technologies and call it a choice.
+- Every report answers three questions: what is finished, what it means for the user,
+  and what the user needs to decide. Anything else is optional detail.
+- Leave out checksums, port numbers, package counts, and version numbers unless the
+  user asks. Say "the file is unchanged" rather than quoting a fingerprint.
+- docs/PLAN_NON_TECHNICAL.md is the user's view of the plan. Update it when a step
+  changes what the user will be able to do.
+
 ## Working rules (MANDATORY)
 - Do ONE atomic step from PLAN.md per turn, then stop and wait.
 - Start by reading: AGENTS.md, PROGRESS.md (Current state), next step in PLAN.md.
