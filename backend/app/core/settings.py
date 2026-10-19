@@ -9,6 +9,10 @@ class Settings(BaseSettings):
         "http://localhost:5173",
         "http://127.0.0.1:5173",
     ]
+    # Settled 2026-10-19: recordings are kept for 90 days; owners may delete sooner.
+    retention_days: int = 90
+    # Development storage. Production targets S3, which slots in behind the same seam.
+    storage_local_path: str = ".storage/recordings"
 
 
 settings = Settings()

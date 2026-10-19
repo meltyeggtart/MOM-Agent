@@ -1,14 +1,40 @@
 # Progress
 
 ## Current state
-Phase: P1. Last done: P1-03
-Next: P1-04
+Phase: P1. Last done: P1-04
+Next: P1-05
 Blockers: none
-Open decisions: cloud provider, region, and managed AI services are TBD by
-decision (PRD §19.1), due before P1-04. Retention is settled: account mode only.
-Every other PRD §19 item is answered — see the log.
+Open decisions: managed speech and LLM services are still TBD (PRD §19.1), due
+before P1-05. Storage is settled: AWS S3 in Singapore. Retention is settled: 90 days
+from upload, and account mode only. Every other PRD §19 item is answered — see the log.
 
 ## Log (newest first)
+
+### P1-04 — 2026-10-19 (done)
+Did: added the recording upload. A file posted to a meeting is stored under a
+generated key and recorded in the recordings table with its content type, byte size,
+optional duration, and an expiry 90 days out. A download endpoint returns the stored
+bytes. An unknown meeting, a content type outside a small audio allowlist, an empty
+file, and a file over 200 MB are all refused.
+Files: backend/app/services/storage.py, backend/app/api/recordings.py,
+backend/app/schemas/recording.py, backend/app/core/settings.py, backend/app/main.py,
+backend/app/db/models.py, backend/.env.example, .gitignore, backend/pyproject.toml,
+backend/tests/test_recordings_api.py
+Verified: 15 tests pass (8 of them new) and ruff is clean. Against a running server, a
+real 2-second WAV was created and uploaded with its meeting, stored as a 64 KB file,
+and downloaded back byte for byte with the right content type. The row carried the
+meeting link, the size, the duration, and a retention window of exactly 90 days. An
+unknown meeting answered 404, text/plain answered 415, an empty file answered 400, and
+an "audio/webm;codecs=opus" header was stored as "audio/webm". Every rejection left no
+file behind. The test meeting and its files were then deleted.
+Notes: ten files rather than the usual 1-3. A new endpoint needs its settings, schema,
+router registration, dependency and tests; splitting that would ship a route that does
+nothing on its own.
+Storage is a local directory for now. The production target is AWS S3 in Singapore,
+settled 2026-10-19 under the user's delegation, but there are no AWS credentials in
+this environment, so the S3 driver is not written yet. The storage module is the seam
+for it. Encryption at rest (PRD §11.2) arrives with that driver; a local development
+directory has nothing to configure.
 
 ### P1-03 — 2026-10-19 (done)
 Did: added microphone capture to the meeting screen. Start, pause, resume, and stop
@@ -291,9 +317,9 @@ It is not a step in PLAN.md. Still to decide whether it stays a reference docume
 or becomes a step of its own.
 
 ## Parking lot
-- Unapproved step: finalize the cloud provider, region, and managed AI services
-  decision that was deferred out of P0-02. Blocking before P1-04 and P1-05.
-- Open value: how long stored account meeting data is kept. Due before P1-04.
+- Pending step: the S3 storage driver, blocked on AWS credentials for the chosen
+  Singapore region. Until then audio is written under the local `.storage/` directory,
+  which is gitignored.
 - Deferred from P1-03: the audio-quality indicator in PRD §7.2. It needs a real
   microphone to verify properly, and the rest of the step is complete.
 - Deferred from P1-03: a router, once the number of screens makes a state switch

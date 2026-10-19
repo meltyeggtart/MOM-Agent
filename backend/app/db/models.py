@@ -92,7 +92,7 @@ class Recording(Base):
     uploaded_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )
-    # Kept null until the retention value is settled; see PROGRESS.md parking lot.
+    # 90 days from upload, settled 2026-10-19; the owner may delete sooner.
     expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
     meeting: Mapped[Meeting] = relationship(back_populates="recordings")

@@ -81,7 +81,7 @@ record the change in PROGRESS.md when it does.
   PRD: §7.2   Files: frontend/src/components/Recorder.tsx, frontend/src/pages/Meeting.tsx
   Done when: local audio recorded and playable.
 
-- [ ] P1-04  Secure audio upload and storage with retention setting
+- [x] P1-04  Secure audio upload and storage with retention setting
   PRD: §7.2, §11   Files: backend/app/services/storage.py, backend/app/api/recordings.py, backend/app/core/settings.py
   Done when: audio stored and linked to a meeting.
 
