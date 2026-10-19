@@ -68,10 +68,16 @@ Two apps in one repository, deployed separately. Created in P0-04.
     backend/app/           FastAPI application
     backend/app/api/       HTTP routes
     backend/app/core/      settings and logging
-    backend/app/db/        models and migrations
+    backend/app/db/        database models
+    backend/app/schemas/   request and response models
+    backend/app/prompts/   MOM and check prompts
     backend/app/services/  speech, translation, LLM, documents
+    backend/app/worker.py  background job entry point
+    backend/alembic/       database migrations
     backend/tests/         pytest tests
     frontend/src/          React SPA
+    frontend/src/pages/    route-level screens
+    frontend/src/components/  shared components
     frontend/src/i18n/     English and Mandarin strings
     docs/                  project documents
 
