@@ -1,8 +1,8 @@
 # Progress
 
 ## Current state
-Phase: P1. Last done: P1-05
-Next: P1-06
+Phase: P1. Last done: P1-06
+Next: P1-07
 Blockers: none
 Open decisions: the LLM for MOM generation is still TBD (PRD §19.1), due before P1-08.
 Storage is settled: AWS S3 in Singapore. Retention is settled: 90 days from upload,
@@ -10,6 +10,28 @@ and account mode only. Speech is settled: Amazon Transcribe. Every other PRD §1
 is answered — see the log.
 
 ## Log (newest first)
+
+### P1-06 — 2026-10-19 (done)
+Did: Mandarin and mixed-language transcription. The worker no longer assumes English.
+A meeting that declares one language passes it as a hint; a meeting that declares two
+lets Whisper detect the language, which is what code-switching needs. The transcript
+stores the detected language.
+Files: backend/app/services/speech.py, backend/app/worker.py,
+backend/tests/test_speech.py, backend/tests/fixtures/mandarin.mp3,
+backend/tests/fixtures/mixed.wav, backend/app/core/settings.py
+Verified: 22 tests pass (3 new) and ruff is clean. A Mandarin sample transcribed as
+correct simplified Chinese. A sample that starts in English and switches to Mandarin
+kept both languages in one transcript. Through the real API, a meeting declaring en+zh
+produced a four-segment transcript containing both sentences, and a meeting declaring
+only zh produced simplified Chinese.
+Notes: the model is now `small`. `tiny` garbled Mandarin: "项目预算" came out as
+"像武玉算", so it was not usable. `small` takes about 5 seconds per 12 seconds of audio
+on this CPU and downloads about 460 MB on first use.
+Whisper writes Mandarin in traditional characters when the audio mixes languages and in
+simplified characters when the audio is Mandarin only. The bilingual checks in P1-11
+must compare characters, not assume a script.
+The fixtures are synthesized sentences, so they prove the pipeline, not real-meeting
+accuracy. A real recording is still the only way to judge that.
 
 ### P1-05 — 2026-10-19 (done)
 Did: added post-meeting transcription. A worker process looks for recordings whose

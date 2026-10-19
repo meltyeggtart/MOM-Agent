@@ -13,14 +13,18 @@ from sqlalchemy import exists, select
 from sqlalchemy.orm import Session
 
 from app.core.settings import settings
-from app.db.models import Recording, Transcript
+from app.db.models import Meeting, Recording, Transcript
 from app.db.session import SessionLocal
 from app.services.speech import SpeechToText, get_speech_to_text
 from app.services.storage import LocalAudioStorage, get_audio_storage
 
 logger = logging.getLogger(__name__)
 
-LANGUAGE = "en"
+
+def _language_for(meeting: Meeting) -> str | None:
+    """One declared language is a better hint than detection; several mean code-switching."""
+    languages = meeting.languages or []
+    return languages[0] if len(languages) == 1 else None
 
 
 def transcribe_pending(
@@ -34,7 +38,6 @@ def transcribe_pending(
 
     has_transcript = exists().where(
         Transcript.meeting_id == Recording.meeting_id,
-        Transcript.language == LANGUAGE,
     )
     pending = session.scalars(
         select(Recording.id).where(~has_transcript).order_by(Recording.uploaded_at)
@@ -48,11 +51,11 @@ def transcribe_pending(
             logger.warning("Audio missing for recording %s", recording_id)
             continue
 
-        result = speech.transcribe(path, LANGUAGE)
+        result = speech.transcribe(path, _language_for(recording.meeting))
         session.add(
             Transcript(
                 meeting_id=recording.meeting_id,
-                language=LANGUAGE,
+                language=result.language,
                 text=result.text,
                 segments=[
                     {"start_ms": s.start_ms, "end_ms": s.end_ms, "text": s.text}
