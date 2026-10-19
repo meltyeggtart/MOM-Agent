@@ -1,14 +1,36 @@
 # Progress
 
 ## Current state
-Phase: P1. Last done: P1-01a
-Next: P1-01b
+Phase: P1. Last done: P1-01b
+Next: P1-02
 Blockers: none
 Open decisions: cloud provider, region, and managed AI services are TBD by
 decision (PRD §19.1), due before P1-04. Retention is settled: account mode only.
 Every other PRD §19 item is answered — see the log.
 
 ## Log (newest first)
+
+### P1-01b — 2026-10-15 (done)
+Did: defined five tables and generated the migration that creates them.
+  meetings: title, date and time, language list, client/company, project,
+    participants, agenda, location, meeting type, in-person flag, status, timestamps.
+  recordings: storage key, content type, size, duration, upload time, and an expiry
+    that stays null until the retention value is settled.
+  transcripts: language, text, optional segments, provider, creation time.
+  moms: one per meeting per audience, with a status.
+  mom_versions: number, JSON content, ai_generated flag, approval fields, timestamps.
+Files: backend/app/db/models.py, backend/alembic/env.py,
+backend/alembic/versions/4a3a767eaba2_initial_schema.py
+Verified: autogenerate detected every table; upgrade created them with the expected
+columns and types; downgrade to base dropped them and upgrade restored them, re-run
+after the lint fixes so the tested file is the committed file. A mapping smoke test
+inserted a meeting, a MOM and a version, read back the generated id, the defaults and
+the relationship, then deleted the meeting and confirmed the tables were empty.
+ruff clean, pytest 1 passed.
+Notes: no owner column. The account link arrives with P1-14 and there is no
+production data, so the ordering costs nothing.
+Status, audience and language values are stored as text driven by Python StrEnum
+instead of PostgreSQL enums, so adding a case later is an ordinary migration.
 
 ### P1-01a — 2026-10-15 (done)
 Did: connected the database layer. Added SQLAlchemy, Alembic, psycopg and
