@@ -1,14 +1,34 @@
 # Progress
 
 ## Current state
-Phase: P1. Last done: P1-02c
-Next: P1-02b
+Phase: P1. Last done: P1-02b
+Next: P1-03
 Blockers: none
 Open decisions: cloud provider, region, and managed AI services are TBD by
 decision (PRD §19.1), due before P1-04. Retention is settled: account mode only.
 Every other PRD §19 item is answered — see the log.
 
 ## Log (newest first)
+
+### P1-02b — 2026-10-15 (done)
+Did: built the new meeting screen. It carries the fields from PRD §7.1 — title, date
+and time, meeting languages, client or company, project, participants, agenda,
+location, meeting type, and the in-person flag — posts them to the meeting API, and
+shows the created meeting with its reference.
+Files: frontend/src/pages/NewMeeting.tsx, frontend/src/i18n/messages.ts,
+frontend/src/App.tsx, frontend/src/index.css, frontend/src/vite-env.d.ts
+Verified: lint and production build pass. In a real browser the form was filled and
+submitted; the backend logged "POST /meetings 201 Created", the meeting table held the
+row, and the screen showed "Meeting created" with the title and reference. The row was
+then deleted and both servers stopped.
+Notes: the date field starts at the current local time, because a meeting is usually
+recorded once it is under way. The value can still be changed, and clearing it still
+produces the "enter a date and time" message.
+The screen sends the browser's time zone offset, so a typed local time is stored as the
+same instant instead of being read as UTC.
+Port 8000 is held by a platform service on this machine, so the browser check ran with
+the API on 8010 and VITE_API_BASE_URL pointing there. The code default stays on 8000,
+the usual local address for this backend.
 
 ### P1-02c — 2026-10-15 (done, added at the user's request)
 Did: made the automated checks able to use the database, and covered the meeting
