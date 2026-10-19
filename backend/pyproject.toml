@@ -5,7 +5,9 @@ description = "Backend for the AI Meeting Agent"
 requires-python = ">=3.13"
 dependencies = [
   "alembic>=1.20.0",
+  "av<14",
   "fastapi>=0.115",
+  "faster-whisper>=1.2.1",
   "psycopg[binary]>=3.3.6",
   "pydantic-settings>=2.16.0",
   "python-multipart>=0.0.9",

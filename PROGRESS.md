@@ -1,14 +1,37 @@
 # Progress
 
 ## Current state
-Phase: P1. Last done: P1-04
-Next: P1-05
+Phase: P1. Last done: P1-05
+Next: P1-06
 Blockers: none
-Open decisions: managed speech and LLM services are still TBD (PRD §19.1), due
-before P1-05. Storage is settled: AWS S3 in Singapore. Retention is settled: 90 days
-from upload, and account mode only. Every other PRD §19 item is answered — see the log.
+Open decisions: the LLM for MOM generation is still TBD (PRD §19.1), due before P1-08.
+Storage is settled: AWS S3 in Singapore. Retention is settled: 90 days from upload,
+and account mode only. Speech is settled: Amazon Transcribe. Every other PRD §19 item
+is answered — see the log.
 
 ## Log (newest first)
+
+### P1-05 — 2026-10-19 (done)
+Did: added post-meeting transcription. A worker process looks for recordings whose
+meeting has no English transcript, transcribes the audio, and stores the text with
+timestamps and the provider name. Running it twice does not duplicate the transcript.
+Files: backend/app/services/speech.py, backend/app/worker.py,
+backend/tests/test_speech.py, backend/tests/fixtures/kickoff.mp3,
+backend/app/core/settings.py, backend/.env.example, backend/pyproject.toml
+Verified: 19 tests pass (4 new) and ruff is clean. A 7.4-second English sample was
+uploaded through the API, the worker transcribed it in under a second, and the row held
+the expected sentence, one segment spanning 0-7000 ms, and the provider name. A second
+pass saved nothing. A recording whose audio file was gone was skipped instead of
+failing.
+Notes: no AWS or Google credentials exist here, so the production target (Amazon
+Transcribe) could not be called or tested. The code runs a local Whisper model
+(faster-whisper, tiny.en) behind a single-method seam instead. That is a deliberate
+departure from the managed-API rule in AGENTS.md, taken so the pipeline could be proven
+end to end; Transcribe slots into the same seam once credentials exist.
+The fixture is a synthesized English sentence, committed so the test repeats without a
+network. The model downloads on first use (75 MB) and is cached outside the repository.
+The first run needed av<14: faster-whisper 1.2.1 calls a PyAV argument that 19.0.1
+removed. That pin is in pyproject.toml.
 
 ### P1-04 — 2026-10-19 (done)
 Did: added the recording upload. A file posted to a meeting is stored under a
@@ -320,6 +343,10 @@ or becomes a step of its own.
 - Pending step: the S3 storage driver, blocked on AWS credentials for the chosen
   Singapore region. Until then audio is written under the local `.storage/` directory,
   which is gitignored.
+- Pending step: the Transcribe speech driver, blocked on the same credentials. Until
+  then the worker runs a local Whisper model.
+- Pending step: the meeting screen does not upload its recording yet, so the worker
+  only sees audio posted through the API.
 - Deferred from P1-03: the audio-quality indicator in PRD §7.2. It needs a real
   microphone to verify properly, and the rest of the step is complete.
 - Deferred from P1-03: a router, once the number of screens makes a state switch

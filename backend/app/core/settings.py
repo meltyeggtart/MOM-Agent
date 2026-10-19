@@ -13,6 +13,9 @@ class Settings(BaseSettings):
     retention_days: int = 90
     # Development storage. Production targets S3, which slots in behind the same seam.
     storage_local_path: str = ".storage/recordings"
+    # Speech runs locally until AWS credentials exist for Transcribe; see PROGRESS.md.
+    whisper_model: str = "tiny.en"
+    worker_poll_seconds: int = 5
 
 
 settings = Settings()

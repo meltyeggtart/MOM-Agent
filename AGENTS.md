@@ -58,11 +58,13 @@ Why this split: document generation and the speech and LLM SDKs are strongest in
 Python, while the meeting screen, live transcript, and review UI need a real
 frontend (PRD §12, §13).
 
-Settled 2026-10-19: audio storage is AWS S3 in the Singapore region, and recordings are
-kept for 90 days from upload with the owner able to delete sooner. The S3 driver is
-pending AWS credentials; until then `app/services/storage.py` writes to a local
-directory. Still TBD: managed speech and LLM services, due before P1-05. The queue and
-the remaining storage products follow those choices.
+Settled 2026-10-19: audio storage is AWS S3 in the Singapore region, recordings are
+kept for 90 days from upload with the owner able to delete sooner, and speech is Amazon
+Transcribe in production. Neither AWS driver is written yet, because no credentials
+exist in the working environment. Until then `app/services/storage.py` writes to a
+local directory and `app/services/speech.py` runs a local Whisper model. Both are
+single-method seams, so swapping a driver touches one file. Still TBD: the LLM for MOM
+generation, due before P1-08. The queue and the remaining products follow those choices.
 
 ## Folder structure
 Two apps in one repository, deployed separately. Created in P0-04.
