@@ -104,8 +104,11 @@ Frontend, run from `frontend/`:
   silently swallowed exceptions.
 - Logging: structured logs at the API boundary. Never log raw audio, transcript
   text, credentials, or MOM content (PRD §11.2).
-- i18n: user-facing text lives in frontend string files with matching English and
-  Mandarin keys. Each MOM carries both languages in one document (PRD §8.1, §8.4).
+- i18n: the interface ships in English only for the first release. Screen text lives
+  in one string file, so adding Mandarin later means translating that file rather
+  than rewriting screens. The PRD requires bilingual meetings and MOMs, not a
+  bilingual interface; each MOM carries both languages in one document
+  (PRD §8.1, §8.4).
 - Prompts: audience-specific MOM prompts live in the backend, versioned with the code.
 
 ## Product guardrails
