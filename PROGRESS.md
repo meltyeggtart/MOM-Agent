@@ -1,14 +1,34 @@
 # Progress
 
 ## Current state
-Phase: P0 complete (P0-01 to P0-06). Last done: P0-06
-Next: P1-01
+Phase: P1. Last done: P1-01a
+Next: P1-01b
 Blockers: none
 Open decisions: cloud provider, region, and managed AI services are TBD by
 decision (PRD §19.1), due before P1-04. Retention is settled: account mode only.
 Every other PRD §19 item is answered — see the log.
 
 ## Log (newest first)
+
+### P1-01a — 2026-10-15 (done)
+Did: connected the database layer. Added SQLAlchemy, Alembic, psycopg and
+pydantic-settings; wrote app/core/settings.py, app/db/base.py, app/db/session.py;
+rewrote alembic/env.py so the connection comes from settings; removed the dummy URL
+from alembic.ini so no credential sits in a tracked file.
+Files: backend/pyproject.toml, backend/app/core/settings.py, backend/app/db/base.py,
+backend/app/db/session.py, backend/alembic.ini, backend/alembic/env.py,
+backend/.env.example, .gitignore
+Verified: created an empty baseline migration and ran it against a real PostgreSQL 17
+instance. alembic_version holds f2c2e6573d4a, `alembic current` reports head, and a
+downgrade to base followed by an upgrade both succeed. ruff clean, pytest 1 passed.
+Notes: P1-01 was split because wiring the toolchain and defining five tables are two
+concerns.
+Sandbox setup, not part of the product: PostgreSQL 17 was installed with apt. Docker
+cannot run here — the daemon fails on iptables rules, and image layers cannot be
+unmounted. The development DSN lives in backend/.env, now gitignored, with
+.env.example documenting the variable.
+Known friction: Alembic's generated migrations trip ruff's unused-import rule, so a
+fresh migration needs `ruff check --fix` afterwards. Left alone for now.
 
 ### P0-06 — 2026-10-15 (done)
 Did: filled in the files every Phase 1 step expects to touch, and extended the folder
@@ -87,6 +107,13 @@ dulu"), so the step is ticked in PLAN.md. The wording itself is new and unreview
 reopen the step if it reads wrong.
 Notes: the real choice moves to a deferred, unapproved step in the Parking lot.
 Nothing is blocked by it until P1-04.
+
+### Interface language ruling — 2026-10-15 (user approved the recommendation)
+The interface ships in English only. Screen text lives in one string file under
+frontend/src/i18n/, so adding Mandarin later means translating that file instead of
+rewriting screens. This settles the convention written at P0-03, which assumed an
+EN+ZH interface without support in the PRD. The PRD requires bilingual meetings and
+MOMs, not a bilingual interface. The question recorded against P1-02 is closed.
 
 ### Retention ruling — 2026-10-15 (user answered "mode dengan akun")
 Account mode only. Guest mode is dropped from the first release, so every meeting

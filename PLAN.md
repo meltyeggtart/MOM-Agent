@@ -44,17 +44,25 @@ record the change in PROGRESS.md when it does.
 
 ## Phase 1 — Core Meeting Intelligence and MOM (PRD §13)
 
-- [ ] P1-01  Define data model: meeting, audio, transcript, MOM, version
-  PRD: §7.1, §12   Files: backend/app/db/base.py, backend/app/db/models.py, backend/alembic/ (first migration)
-  Done when: schema file reviewed; migration runs.
+- [x] P1-01a  Connect the database and the migration tool
+  PRD: §12   Files: backend/pyproject.toml, backend/app/core/settings.py,
+  backend/app/db/base.py, backend/app/db/session.py, backend/alembic.ini,
+  backend/alembic/env.py
+  Done when: an empty migration runs against a real PostgreSQL instance.
+  Split from P1-01 on 2026-10-15: wiring the toolchain and defining five tables are
+  two concerns, and together they pass the file limit in PRD §22.3.
+
+- [ ] P1-01b  Define data model: meeting, audio, transcript, MOM, version
+  PRD: §7.1, §12   Files: backend/app/db/models.py,
+  backend/alembic/versions/ (schema migration)
+  Done when: schema file reviewed; migration creates every table.
 
 - [ ] P1-02  Meeting creation: metadata form and API
-  PRD: §7.1   Files: backend/app/schemas/meeting.py, backend/app/api/meetings.py, frontend/src/pages/NewMeeting.tsx
+  PRD: §7.1   Files: backend/app/schemas/meeting.py, backend/app/api/meetings.py,
+  frontend/src/pages/NewMeeting.tsx, frontend/src/i18n/messages.ts
   Done when: meeting can be created and read back.
-  Open before this step: the PRD does not require a bilingual interface; it only
-  requires bilingual meetings and MOMs. An AGENTS.md convention assumes an EN+ZH
-  interface, which was not sourced from the PRD. Decide English only or EN+ZH
-  before the first screen is written.
+  Settled 2026-10-15: the interface is English only, and screen text lives in the one
+  string file so Mandarin can be added later by translating it.
 
 - [ ] P1-03  Microphone capture in the client (record and stop)
   PRD: §7.2   Files: frontend/src/components/Recorder.tsx, frontend/src/pages/Meeting.tsx
