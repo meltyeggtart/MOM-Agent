@@ -7,8 +7,8 @@ files it touches, and a "done when" check.
 Phase 1 is planned in detail below. Phases 2-4 are headings only and are broken
 into atomic steps when their turn comes.
 
-File paths for the P1 steps are placeholders until the skeleton exists (P0-04 and
-P0-05).
+File paths were filled in at P0-06 (PRD §22.6). A step may adjust them, and must
+record the change in PROGRESS.md when it does.
 
 ## Phase 0 — Foundation
 
@@ -37,68 +37,77 @@ P0-05).
   Split from the original P0-04 on 2026-10-15: one skeleton was two concerns and
   well past the file limit in PRD §22.3.
 
+- [x] P0-06  Fill in the concrete file paths for every Phase 1 step
+  PRD: §22.6   Files: PLAN.md, AGENTS.md
+  Done when: no placeholder path remains in PLAN.md and the AGENTS.md folder tree
+  matches the paths the steps name.
+
 ## Phase 1 — Core Meeting Intelligence and MOM (PRD §13)
 
 - [ ] P1-01  Define data model: meeting, audio, transcript, MOM, version
-  PRD: §7.1, §12   Files: TBD (paths from P0-04/P0-05)
+  PRD: §7.1, §12   Files: backend/app/db/base.py, backend/app/db/models.py, backend/alembic/ (first migration)
   Done when: schema file reviewed; migration runs.
 
 - [ ] P1-02  Meeting creation: metadata form and API
-  PRD: §7.1   Files: TBD (paths from P0-04/P0-05)
+  PRD: §7.1   Files: backend/app/schemas/meeting.py, backend/app/api/meetings.py, frontend/src/pages/NewMeeting.tsx
   Done when: meeting can be created and read back.
+  Open before this step: the PRD does not require a bilingual interface; it only
+  requires bilingual meetings and MOMs. An AGENTS.md convention assumes an EN+ZH
+  interface, which was not sourced from the PRD. Decide English only or EN+ZH
+  before the first screen is written.
 
 - [ ] P1-03  Microphone capture in the client (record and stop)
-  PRD: §7.2   Files: TBD (paths from P0-04/P0-05)
+  PRD: §7.2   Files: frontend/src/components/Recorder.tsx, frontend/src/pages/Meeting.tsx
   Done when: local audio recorded and playable.
 
 - [ ] P1-04  Secure audio upload and storage with retention setting
-  PRD: §7.2, §11   Files: TBD (paths from P0-04/P0-05)
+  PRD: §7.2, §11   Files: backend/app/services/storage.py, backend/app/api/recordings.py, backend/app/core/settings.py
   Done when: audio stored and linked to a meeting.
 
 - [ ] P1-05  Post-meeting transcription job, English only
-  PRD: §7.5   Files: TBD (paths from P0-04/P0-05)
+  PRD: §7.5   Files: backend/app/services/speech.py, backend/app/worker.py, backend/tests/test_speech.py
   Done when: transcript saved for a sample audio.
 
 - [ ] P1-06  Add Mandarin and mixed-language transcription
-  PRD: §7.5   Files: TBD (paths from P0-04/P0-05)
+  PRD: §7.5   Files: backend/app/services/speech.py, backend/tests/test_speech.py
   Done when: mixed EN/ZH sample transcribed.
 
 - [ ] P1-07  Meeting intelligence extraction: topics, decisions, actions, owners, deadlines
-  PRD: §7.6, §7.7   Files: TBD (paths from P0-04/P0-05)
+  PRD: §7.6, §7.7   Files: backend/app/services/intelligence.py, backend/app/schemas/insights.py, backend/tests/test_intelligence.py
   Done when: structured JSON output on a sample.
 
 - [ ] P1-08  Internal MOM generator (bilingual) with audience-specific prompt
-  PRD: §8.2, §8.4   Files: TBD (paths from P0-04/P0-05)
+  PRD: §8.2, §8.4   Files: backend/app/services/mom.py, backend/app/prompts/internal_mom.md, backend/app/schemas/mom.py
   Done when: Internal MOM draft produced.
 
 - [ ] P1-09  External MOM generator (bilingual) with audience-specific prompt
-  PRD: §8.3, §8.5   Files: TBD (paths from P0-04/P0-05)
+  PRD: §8.3, §8.5   Files: backend/app/prompts/external_mom.md, backend/app/services/mom.py, backend/tests/test_mom.py
   Done when: External MOM draft produced.
 
 - [ ] P1-10  Sensitive-content check on External MOM
-  PRD: §8.5, §11.3   Files: TBD (paths from P0-04/P0-05)
+  PRD: §8.5, §11.3   Files: backend/app/services/sensitive.py, backend/app/prompts/sensitive_check.md, backend/tests/test_sensitive.py
   Done when: seeded internal-only text is flagged.
 
 - [ ] P1-11  Bilingual consistency check
-  PRD: §8.6   Files: TBD (paths from P0-04/P0-05)
+  PRD: §8.6   Files: backend/app/services/consistency.py, backend/app/prompts/consistency_check.md, backend/tests/test_consistency.py
   Done when: mismatch between EN and ZH is flagged.
 
 - [ ] P1-12  Review screen: edit, approve, version history
-  PRD: §10   Files: TBD (paths from P0-04/P0-05)
+  PRD: §10   Files: backend/app/api/mom.py, frontend/src/pages/Review.tsx, frontend/src/components/MomEditor.tsx
   Done when: approved MOM is locked and versioned.
 
 - [ ] P1-13  DOCX and PDF export
-  PRD: §10   Files: TBD (paths from P0-04/P0-05)
+  PRD: §10   Files: backend/app/services/documents.py, backend/app/api/export.py, backend/tests/test_documents.py
   Done when: both formats open correctly.
 
 - [ ] P1-14  Basic access control (account mode only)
-  PRD: §11   Files: TBD (paths from P0-04/P0-05)
+  PRD: §11   Files: backend/app/api/auth.py, backend/app/core/security.py, backend/app/db/models.py
   Done when: unauthorized access is blocked.
   Guest mode dropped 2026-10-15, so the guest-deletion half is gone. Deliberate
   deviation from PRD §11.1; see PROGRESS.md.
 
 - [ ] P1-15  Phase 1 acceptance run against Section 18.1, 18.4, 18.5
-  PRD: §18   Files: TBD (paths from P0-04/P0-05)
+  PRD: §18   Files: docs/ACCEPTANCE_PHASE1.md
   Done when: checklist passed and logged.
   Skip the guest-data item of §18.5 (guest mode dropped 2026-10-15).
 

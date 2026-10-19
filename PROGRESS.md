@@ -1,14 +1,28 @@
 # Progress
 
 ## Current state
-Phase: P0 complete (P0-01 to P0-05). Last done: P0-05
-Next: a planning pass to fill the P1 file paths, then P1-01
+Phase: P0 complete (P0-01 to P0-06). Last done: P0-06
+Next: P1-01
 Blockers: none
 Open decisions: cloud provider, region, and managed AI services are TBD by
 decision (PRD §19.1), due before P1-04. Retention is settled: account mode only.
 Every other PRD §19 item is answered — see the log.
 
 ## Log (newest first)
+
+### P0-06 — 2026-10-15 (done)
+Did: filled in the files every Phase 1 step expects to touch, and extended the folder
+tree in AGENTS.md to match. New in the tree: app/schemas/, app/prompts/,
+app/worker.py, backend/alembic/, frontend/src/pages/, frontend/src/components/.
+Files: PLAN.md, AGENTS.md
+Verified: a script confirmed that all 41 paths named across Phase 1 sit inside a
+folder the tree declares, and that no placeholder path is left. PRD §22.6 was read
+first: it says the agent refines the starter steps in a planning step, so this is the
+step the PRD expects.
+Notes: found one claim in AGENTS.md that the PRD does not support. The conventions
+say the interface carries matching English and Mandarin strings, but the PRD requires
+bilingual meetings and MOMs, not a bilingual interface. Recorded as an open question
+against P1-02 rather than settled silently.
 
 ### P0-05 — 2026-10-15 (done)
 Did: scaffolded the frontend with create-vite (react-ts) and replaced the delivered
