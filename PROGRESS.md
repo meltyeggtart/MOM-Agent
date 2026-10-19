@@ -1,14 +1,35 @@
 # Progress
 
 ## Current state
-Phase: P1. Last done: P1-01b
-Next: P1-02
+Phase: P1. Last done: P1-02a
+Next: P1-02b
 Blockers: none
 Open decisions: cloud provider, region, and managed AI services are TBD by
 decision (PRD §19.1), due before P1-04. Retention is settled: account mode only.
 Every other PRD §19 item is answered — see the log.
 
 ## Log (newest first)
+
+### P1-02a — 2026-10-15 (done)
+Did: added the meeting API. Posting a meeting stores it and returns it; reading by id
+returns the stored record or "not found". The app also now accepts browser requests
+from the frontend address, without which the form in the next step would be blocked
+by the browser itself.
+Files: backend/app/schemas/meeting.py, backend/app/api/meetings.py,
+backend/app/main.py, backend/app/core/settings.py
+Verified against the running server: create answered 201 with the stored meeting,
+including a generated id, status "created" and both timestamps; reading that id
+answered 200 with the same content; an unknown id answered 404; the cross-origin
+header named the frontend address. The row was confirmed in the database and then
+deleted. ruff clean, pytest 1 passed. Every check was repeated after switching the
+dependency style, so the committed code is the code that passed.
+Notes: P1-02 was split because the storage path and the screen are two concerns.
+Language codes are checked as en or zh. Adding a language later is a code change only,
+no migration, because the column stores text.
+Known gap: no automated test covers these endpoints yet; they were verified by hand.
+A database-backed test fixture is worth adding before the API grows further.
+The health test now needs backend/.env, because the application loads settings at
+startup.
 
 ### P1-01b — 2026-10-15 (done)
 Did: defined five tables and generated the migration that creates them.

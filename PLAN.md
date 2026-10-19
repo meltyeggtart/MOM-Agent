@@ -57,10 +57,16 @@ record the change in PROGRESS.md when it does.
   backend/alembic/versions/ (schema migration)
   Done when: schema file reviewed; migration creates every table.
 
-- [ ] P1-02  Meeting creation: metadata form and API
+- [x] P1-02a  Meeting creation API: create and read back
   PRD: §7.1   Files: backend/app/schemas/meeting.py, backend/app/api/meetings.py,
-  frontend/src/pages/NewMeeting.tsx, frontend/src/i18n/messages.ts
-  Done when: meeting can be created and read back.
+  backend/app/main.py, backend/app/core/settings.py
+  Done when: a create request stores the meeting and a read request returns it.
+  Split from P1-02 on 2026-10-15: the storage path and the screen are two concerns.
+
+- [ ] P1-02b  New meeting form on screen
+  PRD: §7.1   Files: frontend/src/pages/NewMeeting.tsx,
+  frontend/src/i18n/messages.ts, frontend/src/App.tsx
+  Done when: the form creates a meeting through the API and shows the result.
   Settled 2026-10-15: the interface is English only, and screen text lives in the one
   string file so Mandarin can be added later by translating it.
 
