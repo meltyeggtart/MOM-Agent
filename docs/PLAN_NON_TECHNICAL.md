@@ -85,7 +85,7 @@ langkah ada di `PLAN.md`.
 | --- | --- | --- |
 | P1-01 | Menentukan data apa saja yang disimpan: rapat, rekaman, transkrip, notulen, versi | Rancangan disetujui, penyimpanan bisa disiapkan |
 | P1-02 | Membuat rapat baru lewat form: judul, tanggal, bahasa | Rapat bisa dibuat lalu dibuka lagi |
-| P1-03 | Tombol mulai dan berhenti merekam dari mikrofon | Rekaman lokal bisa diputar ulang |
+| P1-03 | Tombol mulai, jeda, lanjut, dan berhenti merekam dari mikrofon | Rekaman lokal bisa diputar ulang |
 | P1-04 | Mengunggah rekaman dengan aman, plus aturan berapa lama disimpan | Rekaman tersimpan dan menempel ke rapat yang benar |
 | P1-05 | Mengubah rekaman jadi teks, bahasa Inggris dulu | Ada transkrip dari contoh rekaman |
 | P1-06 | Menambah Mandarin dan percakapan campur dua bahasa | Contoh rekaman campuran berhasil jadi transkrip |

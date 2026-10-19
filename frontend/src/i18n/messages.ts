@@ -1,5 +1,10 @@
 export const messages = {
   appTitle: 'AI Meeting Agent',
+  navigation: {
+    label: 'Screens',
+    newMeeting: 'New meeting',
+    meeting: 'Meeting',
+  },
   newMeeting: {
     heading: 'New meeting',
     titleLabel: 'Title',
@@ -22,5 +27,34 @@ export const messages = {
     errorSaveFailed: 'The meeting could not be saved.',
     createdHeading: 'Meeting created',
     referenceLabel: 'Reference',
+  },
+  meeting: {
+    heading: 'Meeting',
+  },
+  recorder: {
+    heading: 'Recording',
+    controlsLabel: 'Recording controls',
+    start: 'Start recording',
+    starting: 'Waiting for the microphone...',
+    pause: 'Pause',
+    resume: 'Resume',
+    stop: 'Stop',
+    statusLabel: 'Status',
+    statusIdle: 'Not recording',
+    statusStarting: 'Waiting for the microphone...',
+    statusRecording: 'Recording',
+    statusPaused: 'Paused',
+    statusStopped: 'Recording stopped',
+    elapsedLabel: 'Elapsed',
+    playbackLabel: 'Recorded audio',
+    errorUnsupported: 'This browser cannot record audio.',
+    errorUnsupportedGuidance:
+      'Open the app in a current Chrome, Edge, or Firefox, on a secure page (https or localhost).',
+    errorPermissionDenied: 'The microphone is blocked.',
+    errorPermissionDeniedGuidance:
+      'Allow microphone access for this site in the browser settings, then start again.',
+    errorUnavailable: 'No microphone was found.',
+    errorUnavailableGuidance:
+      'Connect a microphone or headset, and check that no other app is using it, then start again.',
   },
 } as const
