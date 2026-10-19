@@ -77,7 +77,7 @@ record the change in PROGRESS.md when it does.
   Reason: P1-02a shipped with hand verification only, and every later feature builds
   on those endpoints.
 
-- [ ] P1-03  Microphone capture in the client (record and stop)
+- [x] P1-03  Microphone capture in the client (record and stop)
   PRD: §7.2   Files: frontend/src/components/Recorder.tsx, frontend/src/pages/Meeting.tsx
   Done when: local audio recorded and playable.
 

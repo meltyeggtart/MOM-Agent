@@ -1,14 +1,46 @@
 # Progress
 
 ## Current state
-Phase: P1. Last done: P1-02b
-Next: P1-03
+Phase: P1. Last done: P1-03
+Next: P1-04
 Blockers: none
 Open decisions: cloud provider, region, and managed AI services are TBD by
 decision (PRD §19.1), due before P1-04. Retention is settled: account mode only.
 Every other PRD §19 item is answered — see the log.
 
 ## Log (newest first)
+
+### P1-03 — 2026-10-19 (done)
+Did: added microphone capture to the meeting screen. Start, pause, resume, and stop
+drive the browser recorder. The screen shows the recording status and the elapsed
+time, and plays the captured audio back once recording stops. A blocked microphone,
+a missing device, and an unsupported browser each show their own message and the
+practical step to take next.
+Files: frontend/src/components/Recorder.tsx, frontend/src/pages/Meeting.tsx,
+frontend/src/App.tsx, frontend/src/i18n/messages.ts
+Verified: lint and the type-checked production build pass. In a real browser
+(Chromium with a simulated microphone) recording started, pause and resume changed
+the status, stop produced a playable 51 KB WebM/Opus clip inside the page, and no
+console error appeared. Two failure runs were checked: a blocked microphone showed
+"The microphone is blocked" with the settings guidance, and a machine without a
+device showed "No microphone was found" with the connection guidance. Both returned
+the control to "Not recording".
+Notes: PLAN.md names two files for this step; four were needed. The app had no way
+to reach a second screen, so App.tsx now switches between the new-meeting screen and
+the meeting screen. A plain state switch was used instead of adding a router, since
+routing is not needed yet.
+Elapsed time counts wall clock from the start, so it keeps running while recording is
+paused; PRD §7.2 calls it the meeting duration, not the audio length.
+The browser check used a throwaway Playwright script. It is not committed, so no
+automated test covers this component yet.
+
+### Push and pull request for P0 + P1-02 — 2026-10-19 (done)
+Did: pushed branch p0-foundation and opened pull request #1 against main, then merged
+it with a rebase. Created branch p1-core from the merged main for the rest of Phase 1.
+Verified: the remote branch pointed at the committed head, the pull request reported
+12 commits, 42 files, and no conflict, and main moved to the merged commit.
+Notes: the first GITHUB_TOKEN value was rejected by GitHub. The user replaced it and
+the push then succeeded.
 
 ### P1-02b — 2026-10-15 (done)
 Did: built the new meeting screen. It carries the fields from PRD §7.1 — title, date
@@ -262,3 +294,7 @@ or becomes a step of its own.
 - Unapproved step: finalize the cloud provider, region, and managed AI services
   decision that was deferred out of P0-02. Blocking before P1-04 and P1-05.
 - Open value: how long stored account meeting data is kept. Due before P1-04.
+- Deferred from P1-03: the audio-quality indicator in PRD §7.2. It needs a real
+  microphone to verify properly, and the rest of the step is complete.
+- Deferred from P1-03: a router, once the number of screens makes a state switch
+  awkward. Two screens do not justify the dependency yet.
