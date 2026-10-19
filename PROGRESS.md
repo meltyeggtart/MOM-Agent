@@ -1,7 +1,7 @@
 # Progress
 
 ## Current state
-Phase: P1. Last done: P1-02a
+Phase: P1. Last done: P1-02c
 Next: P1-02b
 Blockers: none
 Open decisions: cloud provider, region, and managed AI services are TBD by
@@ -9,6 +9,21 @@ decision (PRD §19.1), due before P1-04. Retention is settled: account mode only
 Every other PRD §19 item is answered — see the log.
 
 ## Log (newest first)
+
+### P1-02c — 2026-10-15 (done, added at the user's request)
+Did: made the automated checks able to use the database, and covered the meeting
+endpoints. Each test runs inside a transaction that is rolled back, so a commit made
+by the code under test only releases a savepoint and no row reaches the table. The API
+session dependency is overridden to use that transaction.
+Files: backend/tests/conftest.py, backend/tests/test_meetings_api.py
+Verified: 7 tests pass — health, create returns the stored meeting with id, status and
+timestamps, read returns it, an unknown id answers not found, and three rejection
+cases (empty title, no languages, unknown language). The meetings table holds no rows
+after the run. To prove the checks are real, one expectation was deliberately broken:
+that test failed while the others passed, then it was restored and everything passed
+again. ruff clean.
+Notes: the tests need backend/.env because the application loads settings at import.
+They use the development database but never keep anything in it.
 
 ### P1-02a — 2026-10-15 (done)
 Did: added the meeting API. Posting a meeting stores it and returns it; reading by id

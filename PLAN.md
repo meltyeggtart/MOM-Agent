@@ -70,6 +70,13 @@ record the change in PROGRESS.md when it does.
   Settled 2026-10-15: the interface is English only, and screen text lives in the one
   string file so Mandarin can be added later by translating it.
 
+- [x] P1-02c  Automated test foundation: tests run against the database
+  Source: added 2026-10-15 with the user's agreement; not required by the PRD.
+  Files: backend/tests/conftest.py, backend/tests/test_meetings_api.py
+  Done when: the meeting endpoints are covered by tests that leave no data behind.
+  Reason: P1-02a shipped with hand verification only, and every later feature builds
+  on those endpoints.
+
 - [ ] P1-03  Microphone capture in the client (record and stop)
   PRD: §7.2   Files: frontend/src/components/Recorder.tsx, frontend/src/pages/Meeting.tsx
   Done when: local audio recorded and playable.
