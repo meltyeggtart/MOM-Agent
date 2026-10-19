@@ -52,7 +52,7 @@ record the change in PROGRESS.md when it does.
   Split from P1-01 on 2026-10-15: wiring the toolchain and defining five tables are
   two concerns, and together they pass the file limit in PRD §22.3.
 
-- [ ] P1-01b  Define data model: meeting, audio, transcript, MOM, version
+- [x] P1-01b  Define data model: meeting, audio, transcript, MOM, version
   PRD: §7.1, §12   Files: backend/app/db/models.py,
   backend/alembic/versions/ (schema migration)
   Done when: schema file reviewed; migration creates every table.
