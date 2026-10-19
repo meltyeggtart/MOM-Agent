@@ -63,8 +63,10 @@ kept for 90 days from upload with the owner able to delete sooner, and speech is
 Transcribe in production. Neither AWS driver is written yet, because no credentials
 exist in the working environment. Until then `app/services/storage.py` writes to a
 local directory and `app/services/speech.py` runs a local Whisper model. Both are
-single-method seams, so swapping a driver touches one file. Still TBD: the LLM for MOM
-generation, due before P1-08. The queue and the remaining products follow those choices.
+single-method seams, so swapping a driver touches one file. The local model is `small`,
+the first size that handles Mandarin and English code-switching acceptably; `tiny`
+garbled Mandarin badly. Still TBD: the LLM for MOM generation, due before P1-08. The
+queue and the remaining products follow those choices.
 
 ## Folder structure
 Two apps in one repository, deployed separately. Created in P0-04.

@@ -31,7 +31,9 @@ class SpeechResult:
 class SpeechToText(Protocol):
     provider: str
 
-    def transcribe(self, audio_path: Path, language: str) -> SpeechResult: ...
+    def transcribe(
+        self, audio_path: Path, language: str | None
+    ) -> SpeechResult: ...
 
 
 class WhisperSpeechToText:
@@ -51,7 +53,7 @@ class WhisperSpeechToText:
             )
         return self._model
 
-    def transcribe(self, audio_path: Path, language: str) -> SpeechResult:
+    def transcribe(self, audio_path: Path, language: str | None) -> SpeechResult:
         segments, info = self._model_instance().transcribe(
             str(audio_path), language=language, beam_size=1
         )

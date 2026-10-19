@@ -89,7 +89,7 @@ record the change in PROGRESS.md when it does.
   PRD: §7.5   Files: backend/app/services/speech.py, backend/app/worker.py, backend/tests/test_speech.py
   Done when: transcript saved for a sample audio.
 
-- [ ] P1-06  Add Mandarin and mixed-language transcription
+- [x] P1-06  Add Mandarin and mixed-language transcription
   PRD: §7.5   Files: backend/app/services/speech.py, backend/tests/test_speech.py
   Done when: mixed EN/ZH sample transcribed.
 

@@ -14,7 +14,7 @@ class Settings(BaseSettings):
     # Development storage. Production targets S3, which slots in behind the same seam.
     storage_local_path: str = ".storage/recordings"
     # Speech runs locally until AWS credentials exist for Transcribe; see PROGRESS.md.
-    whisper_model: str = "tiny.en"
+    whisper_model: str = "small"
     worker_poll_seconds: int = 5
 
 

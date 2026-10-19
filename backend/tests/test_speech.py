@@ -10,7 +10,10 @@ from app.services.speech import WhisperSpeechToText
 from app.services.storage import LocalAudioStorage
 from app.worker import transcribe_pending
 
-FIXTURE = Path(__file__).parent / "fixtures" / "kickoff.mp3"
+FIXTURES = Path(__file__).parent / "fixtures"
+KICKOFF = FIXTURES / "kickoff.mp3"
+MANDARIN = FIXTURES / "mandarin.mp3"
+MIXED = FIXTURES / "mixed.wav"
 
 
 @pytest.fixture(scope="session")
@@ -22,15 +25,16 @@ def speech() -> WhisperSpeechToText:
 def stored_audio(tmp_path: Path) -> LocalAudioStorage:
     root = tmp_path / "audio"
     root.mkdir()
-    (root / "kickoff.mp3").write_bytes(FIXTURE.read_bytes())
+    for sample in (KICKOFF, MANDARIN, MIXED):
+        (root / sample.name).write_bytes(sample.read_bytes())
     return LocalAudioStorage(root=root)
 
 
-def _meeting(session: Session) -> Meeting:
+def _meeting(session: Session, languages: list[str] | None = None) -> Meeting:
     meeting = Meeting(
         title="Kickoff",
         meeting_at=datetime(2026, 11, 2, 9, 30, tzinfo=UTC),
-        languages=["en"],
+        languages=languages or ["en"],
     )
     session.add(meeting)
     session.commit()
@@ -38,13 +42,14 @@ def _meeting(session: Session) -> Meeting:
 
 
 def _recording(
-    session: Session, meeting: Meeting, key: str = "kickoff.mp3"
+    session: Session, meeting: Meeting, key: str = KICKOFF.name
 ) -> Recording:
+    fixture = FIXTURES / key
     recording = Recording(
         meeting_id=meeting.id,
         storage_key=key,
-        content_type="audio/mpeg",
-        byte_size=FIXTURE.stat().st_size,
+        content_type="audio/wav" if key.endswith(".wav") else "audio/mpeg",
+        byte_size=fixture.stat().st_size if fixture.exists() else 0,
     )
     session.add(recording)
     session.commit()
@@ -52,7 +57,7 @@ def _recording(
 
 
 def test_whisper_transcribes_english_speech(speech: WhisperSpeechToText) -> None:
-    result = speech.transcribe(FIXTURE, "en")
+    result = speech.transcribe(KICKOFF, "en")
 
     text = result.text.lower()
     assert "kickoff" in text
@@ -62,6 +67,27 @@ def test_whisper_transcribes_english_speech(speech: WhisperSpeechToText) -> None
     assert result.segments
     assert result.segments[0].start_ms == 0
     assert result.segments[-1].end_ms > 0
+
+
+def test_whisper_transcribes_mandarin_speech(speech: WhisperSpeechToText) -> None:
+    result = speech.transcribe(MANDARIN, None)
+
+    assert result.language == "zh"
+    assert "今天" in result.text
+    assert "预算" in result.text or "預算" in result.text
+    assert "下一步" in result.text
+
+
+def test_whisper_transcribes_mixed_english_and_mandarin(
+    speech: WhisperSpeechToText,
+) -> None:
+    result = speech.transcribe(MIXED, None)
+
+    text = result.text
+    assert "kickoff" in text.lower()
+    assert "budget" in text.lower()
+    assert "今天" in text
+    assert "下一步" in text
 
 
 def test_worker_saves_a_transcript(
@@ -80,6 +106,21 @@ def test_worker_saves_a_transcript(
     assert transcript.provider == "faster-whisper"
     assert transcript.segments[0]["text"]
     assert transcript.segments[-1]["end_ms"] > 0
+
+
+def test_worker_lets_the_audio_decide_the_language(
+    db_session: Session, stored_audio: LocalAudioStorage, speech: WhisperSpeechToText
+) -> None:
+    meeting = _meeting(db_session, languages=["en", "zh"])
+    _recording(db_session, meeting, key=MIXED.name)
+
+    saved = transcribe_pending(db_session, storage=stored_audio, speech=speech)
+
+    assert saved == 1
+    transcript = db_session.scalars(select(Transcript)).one()
+    assert transcript.language == "zh"
+    assert "kickoff" in transcript.text.lower()
+    assert "下一步" in transcript.text
 
 
 def test_worker_does_not_transcribe_the_same_meeting_twice(
