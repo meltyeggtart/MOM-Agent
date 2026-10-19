@@ -7,3 +7,25 @@ body {
   margin: 0;
   padding: 2rem;
 }
+
+form > label {
+  display: grid;
+  gap: 0.25rem;
+  max-width: 32rem;
+  margin-bottom: 0.75rem;
+}
+
+form > label:has(input[type='checkbox']) {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+fieldset {
+  max-width: 32rem;
+  margin-bottom: 0.75rem;
+}
+
+fieldset label {
+  margin-right: 1rem;
+}

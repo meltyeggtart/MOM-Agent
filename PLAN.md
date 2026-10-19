@@ -63,7 +63,7 @@ record the change in PROGRESS.md when it does.
   Done when: a create request stores the meeting and a read request returns it.
   Split from P1-02 on 2026-10-15: the storage path and the screen are two concerns.
 
-- [ ] P1-02b  New meeting form on screen
+- [x] P1-02b  New meeting form on screen
   PRD: §7.1   Files: frontend/src/pages/NewMeeting.tsx,
   frontend/src/i18n/messages.ts, frontend/src/App.tsx
   Done when: the form creates a meeting through the API and shows the result.

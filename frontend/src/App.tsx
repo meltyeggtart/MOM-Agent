@@ -1,10 +1,7 @@
+import NewMeeting from './pages/NewMeeting'
+
 function App() {
-  return (
-    <main>
-      <h1>AI Meeting Agent</h1>
-      <p>Frontend skeleton. The meeting screens arrive in Phase 1.</p>
-    </main>
-  )
+  return <NewMeeting />
 }
 
 export default App
