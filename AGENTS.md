@@ -58,9 +58,11 @@ Why this split: document generation and the speech and LLM SDKs are strongest in
 Python, while the meeting screen, live transcript, and review UI need a real
 frontend (PRD §12, §13).
 
-Still TBD: cloud provider, region, and managed AI services (P0-02). Settle before
-P1-04 and P1-05. This stack is cloud agnostic; the queue and storage products follow
-that choice.
+Settled 2026-10-19: audio storage is AWS S3 in the Singapore region, and recordings are
+kept for 90 days from upload with the owner able to delete sooner. The S3 driver is
+pending AWS credentials; until then `app/services/storage.py` writes to a local
+directory. Still TBD: managed speech and LLM services, due before P1-05. The queue and
+the remaining storage products follow those choices.
 
 ## Folder structure
 Two apps in one repository, deployed separately. Created in P0-04.

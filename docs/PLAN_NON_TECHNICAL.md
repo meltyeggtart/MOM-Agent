@@ -117,7 +117,13 @@ Rilis pertama hanya mode berakun. Mode tanpa akun dibuang, jadi setiap rapat pun
 
 Dua akibatnya. Langkah P1-14 tinggal kendali akses saja, dan daftar uji terima tidak lagi memuat butir data rapat tamu.
 
-Satu angka masih menggantung, tapi tidak perlu buru-buru: berapa lama data rapat disimpan. Itu angka setelan, dan bisa dipatok sebelum langkah P1-04.
+Angka itu sudah dipatok: rekaman disimpan 90 hari sejak diunggah, dan pemiliknya boleh menghapus lebih cepat.
+
+### Penyimpanan rekaman (19 Oktober 2026)
+
+Penyimpanan rekaman memakai AWS S3, wilayah Singapura. Wilayah ini paling dekat, jadi unggah dan unduh terasa cepat, dan biayanya murah untuk ukuran rekaman rapat.
+
+Pemilihan S3 baru berlaku sebagai rencana. Pembuatan jalur S3 menunggu kunci akses AWS. Sampai itu siap, rekaman disimpan di folder lokal komputer pengembang, dan folder itu tidak ikut masuk ke penyimpanan kode.
 
 ## 7. Kalau tahap 1 selesai, kamu bisa apa
 
