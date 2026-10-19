@@ -119,11 +119,13 @@ Dua akibatnya. Langkah P1-14 tinggal kendali akses saja, dan daftar uji terima t
 
 Angka itu sudah dipatok: rekaman disimpan 90 hari sejak diunggah, dan pemiliknya boleh menghapus lebih cepat.
 
-### Penyimpanan rekaman (19 Oktober 2026)
+### Penyimpanan dan pengenalan suara (19 Oktober 2026)
 
 Penyimpanan rekaman memakai AWS S3, wilayah Singapura. Wilayah ini paling dekat, jadi unggah dan unduh terasa cepat, dan biayanya murah untuk ukuran rekaman rapat.
 
-Pemilihan S3 baru berlaku sebagai rencana. Pembuatan jalur S3 menunggu kunci akses AWS. Sampai itu siap, rekaman disimpan di folder lokal komputer pengembang, dan folder itu tidak ikut masuk ke penyimpanan kode.
+Pengubah suara jadi teks memakai Amazon Transcribe, karena satu keluarga dengan S3 sehingga rekaman tidak perlu dikirim ke pihak lain.
+
+Pemilihan S3 dan Transcribe baru berlaku sebagai rencana. Pembuatannya menunggu kunci akses AWS. Sampai itu siap, rekaman disimpan di folder lokal komputer pengembang dan suara diubah jadi teks oleh mesin Whisper yang berjalan di komputer yang sama. Folder rekaman tidak ikut masuk ke penyimpanan kode. Penggantian ke layanan AWS nanti hanya menyentuh satu berkas untuk tiap layanan, jadi pekerjaan sekarang tidak terbuang.
 
 ## 7. Kalau tahap 1 selesai, kamu bisa apa
 

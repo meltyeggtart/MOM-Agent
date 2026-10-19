@@ -85,7 +85,7 @@ record the change in PROGRESS.md when it does.
   PRD: §7.2, §11   Files: backend/app/services/storage.py, backend/app/api/recordings.py, backend/app/core/settings.py
   Done when: audio stored and linked to a meeting.
 
-- [ ] P1-05  Post-meeting transcription job, English only
+- [x] P1-05  Post-meeting transcription job, English only
   PRD: §7.5   Files: backend/app/services/speech.py, backend/app/worker.py, backend/tests/test_speech.py
   Done when: transcript saved for a sample audio.
 
