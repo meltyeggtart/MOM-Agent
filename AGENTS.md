@@ -121,7 +121,9 @@ Frontend, run from `frontend/`:
   that file rather than rewriting screens. The PRD requires bilingual meetings and
   MOMs, not a bilingual interface. Ruling 2026-10-20: each MOM carries English,
   Mandarin and Indonesian in one document by default, and the reviewer chooses which
-  languages to keep. Deliberate deviation from PRD §8.1 and §8.4; see PROGRESS.md.
+  languages to keep. A removed language is hidden, not deleted. The MOM is authored
+  once in the meeting's language and the other two are translations of that text.
+  Deliberate deviation from PRD §8.1 and §8.4; see PROGRESS.md.
 - Prompts: audience-specific MOM prompts live in the backend, versioned with the code.
 
 ## Product guardrails

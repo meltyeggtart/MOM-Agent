@@ -14,7 +14,11 @@ rekaman itu jadi catatan, lalu menyusun dua dokumen notulen dalam tiga bahasa
 - Notulen eksternal, untuk klien atau mitra. Tidak boleh memuat hal-hal yang hanya untuk internal.
 
 Setiap notulen memuat tiga bahasa dalam satu dokumen. Ketiganya dibuat otomatis.
-Saat meninjau hasilnya, kamu bisa memilih bahasa mana saja yang ingin dipakai.
+Saat meninjau hasilnya, kamu bisa memilih bahasa mana saja yang ingin dipakai. Bahasa
+yang tidak dipakai hanya disembunyikan, bukan dihapus, jadi bisa dipakai lagi nanti.
+
+Notulen ditulis dalam bahasa rapatnya, lalu dua bahasa lain diterjemahkan dari tulisan
+itu. Tujuannya agar isi ketiganya tidak berbeda.
 
 ## 2. Kenapa dibuat
 

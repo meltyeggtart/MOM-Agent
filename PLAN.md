@@ -119,10 +119,12 @@ record the change in PROGRESS.md when it does.
   PRD: §8.2, §8.4   Files: backend/app/services/mom.py, backend/app/prompts/internal_mom.md, backend/app/schemas/mom.py
   Done when: an Internal MOM draft carries all three languages in one document.
   Language rule settled 2026-10-20: three languages by default, not the PRD's two.
+  Authored once in the meeting's language, then translated into the other two.
 
 - [ ] P1-09  External MOM generator (EN, ZH, ID) with audience-specific prompt
   PRD: §8.3, §8.5   Files: backend/app/prompts/external_mom.md, backend/app/services/mom.py, backend/tests/test_mom.py
   Done when: an External MOM draft carries all three languages in one document.
+  Same rule as P1-08: authored once in the meeting's language, then translated.
 
 - [ ] P1-10  Sensitive-content check on External MOM
   PRD: §8.5, §11.3   Files: backend/app/services/sensitive.py, backend/app/prompts/sensitive_check.md, backend/tests/test_sensitive.py
@@ -137,7 +139,8 @@ record the change in PROGRESS.md when it does.
   PRD: §10   Files: backend/app/api/mom.py, frontend/src/pages/Review.tsx, frontend/src/components/MomEditor.tsx
   Done when: approved MOM is locked and versioned.
   Added 2026-10-20: the screen also lets the reviewer choose which MOM languages to
-  keep. Whether a removed language is deleted or only hidden is open; see PROGRESS.md.
+  keep. A removed language is hidden, not deleted, so it stays in the version and can
+  be restored.
 
 - [ ] P1-13  DOCX and PDF export
   PRD: §10   Files: backend/app/services/documents.py, backend/app/api/export.py, backend/tests/test_documents.py

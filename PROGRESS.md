@@ -3,19 +3,38 @@
 ## Current state
 Phase: P1. Last done: P1-06c (Indonesian as a meeting language)
 Next: P1-07
-Blockers: none
-Open decisions: the LLM for MOM generation is still TBD (PRD §19.1), due before P1-08.
-How a MOM language removed at review is treated is still open: deleted, or only hidden
-from the approved document and the export. Due before P1-12. Recording input is settled
-2026-10-20: stay on local Whisper for now; a managed API is one class and one line
-behind the seam when credentials exist. MOM languages are settled 2026-10-20: English,
-Mandarin and Indonesian, all three by default, reviewer chooses at review.
+Blockers: P1-07 needs the LLM choice.
+Open decisions: the LLM for meeting intelligence and MOM generation is still TBD
+(PRD §19.1). It blocks P1-07 as well as P1-08. Recording input is settled 2026-10-20:
+stay on local Whisper for now; a managed API is one class and one line behind the seam
+when credentials exist. MOM languages are settled 2026-10-20: English, Mandarin and
+Indonesian, all three by default, the reviewer chooses at review, a removed language is
+hidden rather than deleted, and the MOM is authored once in the meeting's language with
+the other two translated from it.
 Storage is settled: AWS S3 in Singapore. Retention is settled: 90 days from upload,
 and account mode only. Speech is settled: Amazon Transcribe. Every other PRD §19 item
 is answered — see the log. A Huawei SIS driver now exists as an alternative, but it has
 never run against the live service, so the provider is not settled by evidence yet.
 
 ## Log (newest first)
+
+### MOM language ruling, follow-up — 2026-10-20 (user decided)
+Two questions left open by the previous ruling are answered.
+
+1. A language the reviewer removes is hidden, not deleted. It stays in the version and
+   can be brought back; the approved document and the export leave it out. The choice
+   protects against a mistaken removal, which matters because MOMs get revised.
+2. The MOM is authored once, in the meeting's language. The other two languages are
+   translations of that one text, not three independent drafts. The three sections
+   therefore cannot disagree about a decision, a date or an owner: they are one text
+   and two translations of it.
+
+Consequence: the reviewer's language choice is a view of a version, not an edit to it.
+All three languages stay in storage, so the choice needs no history of its own.
+
+Still open, due before P1-08: which language is the source when a meeting declares
+more than one, for example en+zh, or when the transcript detected a language the
+meeting did not declare.
 
 ### MOM language ruling — 2026-10-20 (user decided)
 Each MOM carries three languages in one document: English, Mandarin and Indonesian.
