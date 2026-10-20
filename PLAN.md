@@ -120,6 +120,7 @@ record the change in PROGRESS.md when it does.
   Done when: an Internal MOM draft carries all three languages in one document.
   Language rule settled 2026-10-20: three languages by default, not the PRD's two.
   Authored once in the meeting's language, then translated into the other two.
+  The source is the transcript's detected language (settled 2026-10-20).
 
 - [ ] P1-09  External MOM generator (EN, ZH, ID) with audience-specific prompt
   PRD: §8.3, §8.5   Files: backend/app/prompts/external_mom.md, backend/app/services/mom.py, backend/tests/test_mom.py

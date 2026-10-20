@@ -10,7 +10,8 @@ stay on local Whisper for now; a managed API is one class and one line behind th
 when credentials exist. MOM languages are settled 2026-10-20: English, Mandarin and
 Indonesian, all three by default, the reviewer chooses at review, a removed language is
 hidden rather than deleted, and the MOM is authored once in the meeting's language with
-the other two translated from it.
+the other two translated from it. The source language is the one the transcript
+detected.
 Storage is settled: AWS S3 in Singapore. Retention is settled: 90 days from upload,
 and account mode only. Speech is settled: Amazon Transcribe. Every other PRD §19 item
 is answered — see the log. A Huawei SIS driver now exists as an alternative, but it has
@@ -32,9 +33,10 @@ Two questions left open by the previous ruling are answered.
 Consequence: the reviewer's language choice is a view of a version, not an edit to it.
 All three languages stay in storage, so the choice needs no history of its own.
 
-Still open, due before P1-08: which language is the source when a meeting declares
-more than one, for example en+zh, or when the transcript detected a language the
-meeting did not declare.
+Source language, settled in the same session: the language the transcript detected.
+A meeting that declared en+zh but was mostly spoken in Mandarin is therefore authored
+in Mandarin, then translated. No new field is needed, because the transcript already
+stores the detected language.
 
 ### MOM language ruling — 2026-10-20 (user decided)
 Each MOM carries three languages in one document: English, Mandarin and Indonesian.

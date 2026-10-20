@@ -123,6 +123,7 @@ Frontend, run from `frontend/`:
   Mandarin and Indonesian in one document by default, and the reviewer chooses which
   languages to keep. A removed language is hidden, not deleted. The MOM is authored
   once in the meeting's language and the other two are translations of that text.
+  The source language is the one the transcript detected.
   Deliberate deviation from PRD §8.1 and §8.4; see PROGRESS.md.
 - Prompts: audience-specific MOM prompts live in the backend, versioned with the code.
 

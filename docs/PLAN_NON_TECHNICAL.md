@@ -18,7 +18,9 @@ Saat meninjau hasilnya, kamu bisa memilih bahasa mana saja yang ingin dipakai. B
 yang tidak dipakai hanya disembunyikan, bukan dihapus, jadi bisa dipakai lagi nanti.
 
 Notulen ditulis dalam bahasa rapatnya, lalu dua bahasa lain diterjemahkan dari tulisan
-itu. Tujuannya agar isi ketiganya tidak berbeda.
+itu. Tujuannya agar isi ketiganya tidak berbeda. Bahasa yang dipakai sebagai sumber
+adalah bahasa yang terdeteksi dari rekaman, bukan bahasa yang dicentang saat membuat
+rapat.
 
 ## 2. Kenapa dibuat
 
