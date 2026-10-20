@@ -11,8 +11,11 @@ The user does not have an IT background. This section covers anything written fo
 user. PLAN.md, PROGRESS.md, and the rest of this file are read by the agent, so they
 stay precise and technical.
 
-- Write to the user in Indonesian, with short sentences and everyday words. Code,
-  comments, commit messages, and file contents stay in English.
+- Write to the user in English as of 2026-10-20, because the user forwards these
+  messages to their engineer. Keep sentences short and still explain a technical term
+  the first time it appears. Before that date the rule was Indonesian.
+  docs/PLAN_NON_TECHNICAL.md stays in Indonesian, because it is the user's own view.
+  Code, comments, commit messages, and file contents stay in English.
 - Explain a technical term once, in a few words, the first time it appears. Do not
   re-explain it later.
 - Report a problem as: what went wrong, what I did about it, what it means for the
