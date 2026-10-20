@@ -7,19 +7,20 @@ Dokumen ini tidak menggantikan `PLAN.md`. Kalau ada perbedaan, `PLAN.md` yang be
 ## 1. Produk ini apa
 
 Aplikasi internet untuk rapat tatap muka. Tugasnya merekam suara rapat, mengubah
-rekaman itu jadi catatan, lalu menyusun dua dokumen notulen dalam dua bahasa
-(Inggris dan Mandarin):
+rekaman itu jadi catatan, lalu menyusun dua dokumen notulen dalam tiga bahasa
+(Inggris, Mandarin, dan Indonesia):
 
 - Notulen internal, untuk kalangan sendiri. Boleh memuat catatan, risiko, dan kekhawatiran internal.
 - Notulen eksternal, untuk klien atau mitra. Tidak boleh memuat hal-hal yang hanya untuk internal.
 
-Setiap notulen memuat dua bahasa dalam satu dokumen.
+Setiap notulen memuat tiga bahasa dalam satu dokumen. Ketiganya dibuat otomatis.
+Saat meninjau hasilnya, kamu bisa memilih bahasa mana saja yang ingin dipakai.
 
 ## 2. Kenapa dibuat
 
 - Peserta rapat harus mendengarkan, ikut bicara, dan mencatat sekaligus. Detail penting terlewat.
-- Peserta bisa bicara Inggris, Mandarin, atau berpindah bahasa di tengah rapat.
-- Menyusun notulen dua bahasa dalam dua versi adalah pekerjaan berulang yang melelahkan.
+- Peserta bisa bicara Inggris, Mandarin, Indonesia, atau berpindah bahasa di tengah rapat.
+- Menyusun notulen tiga bahasa dalam dua versi adalah pekerjaan berulang yang melelahkan.
 - Menyalin catatan internal ke dokumen klien adalah risiko kebocoran yang serius.
 
 ## 3. Aturan main saya selama membangun
@@ -51,9 +52,9 @@ Rekaman tersimpan dengan aman dan punya batas waktu penyimpanan.
 Rekaman diubah jadi teks, termasuk saat peserta berpindah antara Inggris dan Mandarin.
 Transkripsi bahasa Indonesia memakai mesin yang sama. Kualitasnya belum diuji dengan rekaman asli.
 Catatan rapat diringkas: topik, keputusan, tugas, penanggung jawab, tenggat, dan hal yang belum selesai.
-Tersusun dua notulen dua bahasa: internal dan eksternal.
+Tersusun dua notulen tiga bahasa: internal dan eksternal.
 Ada pemeriksaan yang menandai isi internal yang tidak boleh masuk ke notulen eksternal.
-Ada pemeriksaan yang menandai bagian Inggris dan Mandarin yang saling bertentangan.
+Ada pemeriksaan yang menandai bagian Inggris, Mandarin, dan Indonesia yang saling bertentangan.
 Kamu bisa mengubah, menyetujui, dan menyimpan riwayat versi notulen.
 Notulen bisa diunduh sebagai DOCX dan PDF.
 Ada kendali akses dasar. Setiap rapat terikat ke akun pemiliknya, dan datanya tersimpan.
@@ -92,11 +93,11 @@ langkah ada di `PLAN.md`.
 | P1-06 | Menambah Mandarin dan percakapan campur dua bahasa | Contoh rekaman campuran berhasil jadi transkrip |
 | P1-06c | Menambah bahasa Indonesia sebagai bahasa rapat | Rapat berbahasa Indonesia diterima, dan transkripsi memakai petunjuk bahasa Indonesia |
 | P1-07 | Menarik inti rapat: topik, keputusan, tugas, penanggung jawab, tenggat | Ada hasil terstruktur dari satu contoh rapat |
-| P1-08 | Menyusun notulen internal dua bahasa | Draf notulen internal jadi |
-| P1-09 | Menyusun notulen eksternal dua bahasa | Draf notulen eksternal jadi |
+| P1-08 | Menyusun notulen internal tiga bahasa | Draf notulen internal jadi dengan tiga bahasa |
+| P1-09 | Menyusun notulen eksternal tiga bahasa | Draf notulen eksternal jadi dengan tiga bahasa |
 | P1-10 | Memeriksa apakah notulen eksternal bocor isi internal | Teks internal yang sengaja disisipkan terdeteksi |
-| P1-11 | Memeriksa bagian Inggris dan Mandarin tidak bertentangan | Perbedaan tanggal, angka, atau nama terdeteksi |
-| P1-12 | Layar tinjau: ubah, setujui, riwayat versi | Setelah disetujui, notulen terkunci dan versinya tersimpan |
+| P1-11 | Memeriksa bagian Inggris, Mandarin, dan Indonesia tidak bertentangan | Perbedaan tanggal, angka, atau nama terdeteksi |
+| P1-12 | Layar tinjau: ubah, pilih bahasa, setujui, riwayat versi | Setelah disetujui, notulen terkunci dan versinya tersimpan |
 | P1-13 | Ekspor ke DOCX dan PDF | Kedua file bisa dibuka dengan benar |
 | P1-14 | Kendali akses dasar | Yang tidak berhak tidak bisa membuka data |
 | P1-15 | Uji terima tahap 1 sesuai daftar di PRD bagian 18 | Daftar uji lulus dan tercatat |
@@ -133,9 +134,9 @@ Pemilihan S3 dan Transcribe baru berlaku sebagai rencana. Pembuatannya menunggu 
 
 - Menjalankan rapat tatap muka dan mendapat rekaman yang bisa diputar ulang.
 - Mendapat transkrip yang menangani Inggris, Mandarin, dan percakapan campuran.
-- Membuat rapat dengan bahasa Indonesia. Notulennya masih dua bahasa, Inggris dan Mandarin; apakah bahasa Indonesia ikut masuk notulen belum diputuskan.
-- Mendapat dua notulen dua bahasa: satu internal, satu eksternal.
-- Melihat tanda peringatan kalau notulen eksternal mengandung isi internal, atau kalau dua bahasa tidak sejalan.
+- Membuat rapat dengan bahasa Indonesia.
+- Mendapat dua notulen tiga bahasa: satu internal, satu eksternal. Kamu bisa memilih bahasa mana saja yang dipakai.
+- Melihat tanda peringatan kalau notulen eksternal mengandung isi internal, atau kalau ketiga bahasa tidak sejalan.
 - Mengubah dan menyetujui notulen, lalu mengunduhnya sebagai DOCX atau PDF.
 - Mengakses rapat lamanya kapan saja, karena semua rapat tersimpan di akunnya.
 

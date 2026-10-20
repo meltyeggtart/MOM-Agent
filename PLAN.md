@@ -115,29 +115,34 @@ record the change in PROGRESS.md when it does.
   PRD: §7.6, §7.7   Files: backend/app/services/intelligence.py, backend/app/schemas/insights.py, backend/tests/test_intelligence.py
   Done when: structured JSON output on a sample.
 
-- [ ] P1-08  Internal MOM generator (bilingual) with audience-specific prompt
+- [ ] P1-08  Internal MOM generator (EN, ZH, ID) with audience-specific prompt
   PRD: §8.2, §8.4   Files: backend/app/services/mom.py, backend/app/prompts/internal_mom.md, backend/app/schemas/mom.py
-  Done when: Internal MOM draft produced.
+  Done when: an Internal MOM draft carries all three languages in one document.
+  Language rule settled 2026-10-20: three languages by default, not the PRD's two.
 
-- [ ] P1-09  External MOM generator (bilingual) with audience-specific prompt
+- [ ] P1-09  External MOM generator (EN, ZH, ID) with audience-specific prompt
   PRD: §8.3, §8.5   Files: backend/app/prompts/external_mom.md, backend/app/services/mom.py, backend/tests/test_mom.py
-  Done when: External MOM draft produced.
+  Done when: an External MOM draft carries all three languages in one document.
 
 - [ ] P1-10  Sensitive-content check on External MOM
   PRD: §8.5, §11.3   Files: backend/app/services/sensitive.py, backend/app/prompts/sensitive_check.md, backend/tests/test_sensitive.py
   Done when: seeded internal-only text is flagged.
 
-- [ ] P1-11  Bilingual consistency check
+- [ ] P1-11  Cross-language consistency check
   PRD: §8.6   Files: backend/app/services/consistency.py, backend/app/prompts/consistency_check.md, backend/tests/test_consistency.py
-  Done when: mismatch between EN and ZH is flagged.
+  Done when: a mismatch between EN, ZH and ID is flagged.
+  Widened 2026-10-20 from the PRD's EN/ZH pair to three languages.
 
-- [ ] P1-12  Review screen: edit, approve, version history
+- [ ] P1-12  Review screen: edit, choose languages, approve, version history
   PRD: §10   Files: backend/app/api/mom.py, frontend/src/pages/Review.tsx, frontend/src/components/MomEditor.tsx
   Done when: approved MOM is locked and versioned.
+  Added 2026-10-20: the screen also lets the reviewer choose which MOM languages to
+  keep. Whether a removed language is deleted or only hidden is open; see PROGRESS.md.
 
 - [ ] P1-13  DOCX and PDF export
   PRD: §10   Files: backend/app/services/documents.py, backend/app/api/export.py, backend/tests/test_documents.py
   Done when: both formats open correctly.
+  Export carries only the languages chosen at review.
 
 - [ ] P1-14  Basic access control (account mode only)
   PRD: §11   Files: backend/app/api/auth.py, backend/app/core/security.py, backend/app/db/models.py

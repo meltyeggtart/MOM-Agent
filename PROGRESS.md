@@ -5,16 +5,37 @@ Phase: P1. Last done: P1-06c (Indonesian as a meeting language)
 Next: P1-07
 Blockers: none
 Open decisions: the LLM for MOM generation is still TBD (PRD §19.1), due before P1-08.
-The MOM language pairing is also open, due before P1-08: English plus Indonesian, or
-English, Mandarin and Indonesian in one document. Recording input is settled
+How a MOM language removed at review is treated is still open: deleted, or only hidden
+from the approved document and the export. Due before P1-12. Recording input is settled
 2026-10-20: stay on local Whisper for now; a managed API is one class and one line
-behind the seam when credentials exist.
+behind the seam when credentials exist. MOM languages are settled 2026-10-20: English,
+Mandarin and Indonesian, all three by default, reviewer chooses at review.
 Storage is settled: AWS S3 in Singapore. Retention is settled: 90 days from upload,
 and account mode only. Speech is settled: Amazon Transcribe. Every other PRD §19 item
 is answered — see the log. A Huawei SIS driver now exists as an alternative, but it has
 never run against the live service, so the provider is not settled by evidence yet.
 
 ## Log (newest first)
+
+### MOM language ruling — 2026-10-20 (user decided)
+Each MOM carries three languages in one document: English, Mandarin and Indonesian.
+All three are produced by default. At review, the user chooses which languages to keep.
+This replaces the PRD rule of English plus Mandarin only (PRD §8.1, §8.4). Recorded as
+a deliberate deviation, the same way guest mode and the retention rule were.
+
+Carried into PLAN.md:
+- P1-08 and P1-09 produce three languages, not two.
+- P1-11 compares three texts instead of one pair.
+- P1-12 gains the language choice; P1-13 exports only the chosen languages.
+
+Consequence worth naming: translation becomes part of MOM generation. A meeting that
+never spoke Mandarin still needs a Mandarin version, so the quality of that section
+rests on the translation step rather than on the transcript. That cost grows with the
+number of languages and will need a model good at translation, not only at writing.
+
+Still open, due before P1-12: whether a language removed at review is deleted or only
+hidden from the approved document and the export, and whether the choice is per
+version or per MOM.
 
 ### P1-06c — 2026-10-20 (done)
 Did: Indonesian is now a meeting language. The API accepts "id", the new-meeting form

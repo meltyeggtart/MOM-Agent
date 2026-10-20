@@ -1,7 +1,7 @@
 # AI Meeting Agent — Project Rules
 
 ## What this is
-Standalone cloud-hosted bilingual (EN/ZH) in-person meeting app that produces
+Standalone cloud-hosted multilingual (EN/ZH/ID) in-person meeting app that produces
 Internal MOM and External MOM. Full spec: `PRD_AI_MEETING_AGENT_v2.1_FINAL.docx`
 (repo root). The build workflow is defined in that document, Section 22.
 Separate from every other project. Never reuse their code, config, or credentials.
@@ -117,10 +117,11 @@ Frontend, run from `frontend/`:
 - Logging: structured logs at the API boundary. Never log raw audio, transcript
   text, credentials, or MOM content (PRD §11.2).
 - i18n: the interface ships in English only for the first release. Screen text lives
-  in one string file, so adding Mandarin later means translating that file rather
-  than rewriting screens. The PRD requires bilingual meetings and MOMs, not a
-  bilingual interface; each MOM carries both languages in one document
-  (PRD §8.1, §8.4).
+  in one string file, so adding another interface language later means translating
+  that file rather than rewriting screens. The PRD requires bilingual meetings and
+  MOMs, not a bilingual interface. Ruling 2026-10-20: each MOM carries English,
+  Mandarin and Indonesian in one document by default, and the reviewer chooses which
+  languages to keep. Deliberate deviation from PRD §8.1 and §8.4; see PROGRESS.md.
 - Prompts: audience-specific MOM prompts live in the backend, versioned with the code.
 
 ## Product guardrails
