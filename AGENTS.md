@@ -61,9 +61,15 @@ Why this split: document generation and the speech and LLM SDKs are strongest in
 Python, while the meeting screen, live transcript, and review UI need a real
 frontend (PRD §12, §13).
 
-Settled 2026-10-19: audio storage is AWS S3 in the Singapore region, recordings are
-kept for 90 days from upload with the owner able to delete sooner, and speech is Amazon
-Transcribe in production. Neither cloud driver is verified yet, because no credentials
+Settled 2026-10-20: the cloud platform is Azure, because the user rents Azure
+infrastructure in Indonesia (`indonesiacentral`). This replaces the AWS plan of
+2026-10-19; no AWS code was ever written, so the switch cost nothing. Retention stays
+90 days from upload, with the owner able to delete sooner. Region layout is still open.
+Verified 2026-10-20: Indonesia Central exists (Jakarta, three availability zones) and
+PostgreSQL Flexible Server runs there, but Azure Speech's supported-region list omits it
+and no Azure OpenAI model table mentions Indonesia. Speech and OpenAI therefore appear
+to need Southeast Asia (Singapore) at the nearest. Blob Storage in Indonesia Central is
+assumed, not verified. Neither cloud driver is verified yet, because no credentials
 exist in the working environment. Until then `app/services/storage.py` writes to a
 local directory and `app/services/speech.py` runs a local Whisper model. Both are
 single-method seams, so swapping a driver touches one file. The local model is `small`,

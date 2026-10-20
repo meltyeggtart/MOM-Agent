@@ -12,12 +12,44 @@ Indonesian, all three by default, the reviewer chooses at review, a removed lang
 hidden rather than deleted, and the MOM is authored once in the meeting's language with
 the other two translated from it. The source language is the one the transcript
 detected.
-Storage is settled: AWS S3 in Singapore. Retention is settled: 90 days from upload,
-and account mode only. Speech is settled: Amazon Transcribe. Every other PRD §19 item
+Platform is settled: Azure, on infrastructure the user rents in Indonesia
+(`indonesiacentral`). This replaces the AWS plan, and no AWS code exists. Retention is
+settled: 90 days from upload, and account mode only. Region layout is open: Azure
+Speech and Azure OpenAI do not appear in Microsoft's Indonesia region lists, so both
+likely sit in Singapore. See the 2026-10-20 log entry. Every other PRD §19 item
 is answered — see the log. A Huawei SIS driver now exists as an alternative, but it has
 never run against the live service, so the provider is not settled by evidence yet.
 
 ## Log (newest first)
+
+### Azure region check — 2026-10-20 (research, not a decision)
+The user rents Azure infrastructure in Indonesia, so the platform moves from AWS to
+Azure. Before choosing a layout I checked Microsoft's own documentation.
+
+Verified:
+- `indonesiacentral` is a real region: Indonesia Central, Jakarta, three availability
+  zones (`learn.microsoft.com/azure/reliability/regions-list`).
+- PostgreSQL Flexible Server runs there, engines v3/v4/v5
+  (`learn.microsoft.com/azure/postgresql/flexible-server/overview`).
+- Azure Speech supports `id-ID` for speech to text
+  (`learn.microsoft.com/azure/ai-services/speech-service/language-support`).
+- Azure Speech's supported-region page lists `southeastasia` and 18 other region ids,
+  and does not contain "indonesiacentral" anywhere
+  (`learn.microsoft.com/azure/ai-services/speech-service/regions`).
+- No Azure OpenAI / Foundry model page mentioned Indonesia at all; for this part of the
+  world the model region tables stop at Southeast Asia
+  (`learn.microsoft.com/azure/ai-foundry/openai/concepts/models`).
+
+Not verified:
+- Blob Storage in Indonesia Central. Storage exists in every generally available
+  region, but no documentation page enumerated it for this one.
+- Whether the user's subscription has Indonesia Central enabled, and whether Azure
+  OpenAI can be deployed in Indonesia despite the documentation.
+
+Consequence: "everything in Indonesia" is not possible with Azure's managed AI. The
+layout is a choice between hybrid (app, database and recordings in Indonesia, Speech and
+OpenAI in Singapore) and all-Singapore. The hybrid keeps stored data in the country and
+sends only a copy abroad for processing.
 
 ### MOM language ruling, follow-up — 2026-10-20 (user decided)
 Two questions left open by the previous ruling are answered.
