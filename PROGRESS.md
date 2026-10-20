@@ -1,16 +1,45 @@
 # Progress
 
 ## Current state
-Phase: P1. Last done: P1-06b (Huawei SIS scaffold)
+Phase: P1. Last done: P1-06c (Indonesian as a meeting language)
 Next: P1-07
 Blockers: none
 Open decisions: the LLM for MOM generation is still TBD (PRD §19.1), due before P1-08.
+The MOM language pairing is also open, due before P1-08: English plus Indonesian, or
+English, Mandarin and Indonesian in one document. Recording input is settled
+2026-10-20: stay on local Whisper for now; a managed API is one class and one line
+behind the seam when credentials exist.
 Storage is settled: AWS S3 in Singapore. Retention is settled: 90 days from upload,
 and account mode only. Speech is settled: Amazon Transcribe. Every other PRD §19 item
 is answered — see the log. A Huawei SIS driver now exists as an alternative, but it has
 never run against the live service, so the provider is not settled by evidence yet.
 
 ## Log (newest first)
+
+### P1-06c — 2026-10-20 (done)
+Did: Indonesian is now a meeting language. The API accepts "id", the new-meeting form
+offers it, and the worker passes "id" as the transcription hint when a meeting declares
+only Indonesian. A meeting that declares Indonesian together with another language gets
+no hint, so the audio decides.
+Files: backend/app/schemas/meeting.py, backend/tests/test_meetings_api.py,
+backend/tests/test_speech.py, frontend/src/pages/NewMeeting.tsx,
+frontend/src/i18n/messages.ts, PLAN.md, PROGRESS.md, docs/PLAN_NON_TECHNICAL.md
+Verified: 31 tests pass (3 new) and ruff is clean. eslint and the vite build both pass.
+The API test creates a real meeting with languages ["id"] against the development
+database, and the two hint tests call the worker's own helper, so neither uses a stub.
+Missing: there is no Indonesian audio fixture, because no text-to-speech tool exists in
+this environment. Whisper accepts the "id" code, but its Indonesian output is unproven
+end to end. Only a real recording can judge accuracy, exactly as with the earlier
+fixtures.
+Notes: no database change. The languages column stores text, so a new code needs no
+migration. Scope is the spoken language and its transcript only; whether the MOM gains
+Indonesian is still open.
+Known gap, older than this step: SPEECH_PROVIDER=huawei always sends the single
+configured model property (default chinese_16k_conversation), whatever the meeting
+declares. An English meeting on Huawei is therefore already transcribed with a Chinese
+model, and Indonesian inherits that. Worth fixing before Huawei is used for real.
+Decision in the same session: the user chose to stay on local Whisper for now, with a
+provider swap later. That swap touches speech.py plus one settings block.
 
 ### P1-06b — 2026-10-19 (scaffold, never run against the live service)
 Did: added a Huawei Cloud speech driver behind the same seam. `SPEECH_PROVIDER=huawei`

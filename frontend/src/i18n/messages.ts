@@ -12,6 +12,7 @@ export const messages = {
     languagesLegend: 'Meeting languages',
     languageEnglish: 'English',
     languageMandarin: 'Mandarin',
+    languageIndonesian: 'Indonesian',
     clientCompanyLabel: 'Client or company',
     projectLabel: 'Project',
     participantsLabel: 'Participants',

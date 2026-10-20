@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 from app.db.models import Meeting, Recording, Transcript
 from app.services.speech import WhisperSpeechToText
 from app.services.storage import LocalAudioStorage
-from app.worker import transcribe_pending
+from app.worker import _language_for, transcribe_pending
 
 FIXTURES = Path(__file__).parent / "fixtures"
 KICKOFF = FIXTURES / "kickoff.mp3"
@@ -54,6 +54,26 @@ def _recording(
     session.add(recording)
     session.commit()
     return recording
+
+
+def test_language_hint_uses_a_single_declared_language() -> None:
+    meeting = Meeting(
+        title="Rapat",
+        meeting_at=datetime(2026, 11, 2, 9, 30, tzinfo=UTC),
+        languages=["id"],
+    )
+
+    assert _language_for(meeting) == "id"
+
+
+def test_language_hint_is_dropped_for_a_mixed_meeting() -> None:
+    meeting = Meeting(
+        title="Rapat",
+        meeting_at=datetime(2026, 11, 2, 9, 30, tzinfo=UTC),
+        languages=["en", "id"],
+    )
+
+    assert _language_for(meeting) is None
 
 
 def test_whisper_transcribes_english_speech(speech: WhisperSpeechToText) -> None:

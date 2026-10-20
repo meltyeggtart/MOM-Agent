@@ -93,6 +93,24 @@ record the change in PROGRESS.md when it does.
   PRD: §7.5   Files: backend/app/services/speech.py, backend/tests/test_speech.py
   Done when: mixed EN/ZH sample transcribed.
 
+- [x] P1-06b  Add Huawei Cloud SIS speech driver behind the same seam
+  PRD: §7.5   Files: backend/app/services/speech.py,
+  backend/app/core/settings.py, backend/tests/test_huawei.py,
+  backend/.env.example, backend/pyproject.toml
+  Done when: the driver builds a valid SIS job body and maps a real response.
+  Never called against the live service; no credentials exist here. See PROGRESS.md.
+
+- [x] P1-06c  Add Indonesian as a meeting language
+  Source: added 2026-10-20 at the user's request. "Additional languages" is a Phase 4
+  item in this plan, so this deliberately pulls one language into Phase 1.
+  Files: backend/app/schemas/meeting.py, backend/tests/test_meetings_api.py,
+  backend/tests/test_speech.py, frontend/src/pages/NewMeeting.tsx,
+  frontend/src/i18n/messages.ts
+  Done when: a meeting declaring "id" is accepted, and the worker passes "id" as the
+  transcription hint.
+  Scope: the spoken meeting language and its transcript only. Whether Indonesian also
+  enters the MOM is open and due before P1-08.
+
 - [ ] P1-07  Meeting intelligence extraction: topics, decisions, actions, owners, deadlines
   PRD: §7.6, §7.7   Files: backend/app/services/intelligence.py, backend/app/schemas/insights.py, backend/tests/test_intelligence.py
   Done when: structured JSON output on a sample.

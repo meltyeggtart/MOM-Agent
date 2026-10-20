@@ -137,6 +137,14 @@ function NewMeeting() {
             />
             {text.languageMandarin}
           </label>
+          <label>
+            <input
+              type="checkbox"
+              checked={languages.includes('id')}
+              onChange={() => toggleLanguage('id')}
+            />
+            {text.languageIndonesian}
+          </label>
         </fieldset>
 
         <label>

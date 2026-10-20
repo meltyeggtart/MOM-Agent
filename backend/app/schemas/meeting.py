@@ -8,6 +8,7 @@ from pydantic import BaseModel, ConfigDict, Field
 class Language(StrEnum):
     en = "en"
     zh = "zh"
+    id = "id"
 
 
 class MeetingCreate(BaseModel):

@@ -45,10 +45,11 @@ layar yang bisa dipakai.
 ### Tahap 1 — Inti produk: dari rekaman jadi notulen
 Ini tahap yang menghasilkan nilai utama.
 
-Bisa membuat rapat baru dan mengisi judul, tanggal, dan bahasa rapat.
+Bisa membuat rapat baru dan mengisi judul, tanggal, dan bahasa rapat: Inggris, Mandarin, atau Indonesia.
 Bisa merekam suara dari mikrofon, berhenti, dan memutar ulang hasilnya.
 Rekaman tersimpan dengan aman dan punya batas waktu penyimpanan.
 Rekaman diubah jadi teks, termasuk saat peserta berpindah antara Inggris dan Mandarin.
+Transkripsi bahasa Indonesia memakai mesin yang sama. Kualitasnya belum diuji dengan rekaman asli.
 Catatan rapat diringkas: topik, keputusan, tugas, penanggung jawab, tenggat, dan hal yang belum selesai.
 Tersusun dua notulen dua bahasa: internal dan eksternal.
 Ada pemeriksaan yang menandai isi internal yang tidak boleh masuk ke notulen eksternal.
@@ -89,6 +90,7 @@ langkah ada di `PLAN.md`.
 | P1-04 | Mengunggah rekaman dengan aman, plus aturan berapa lama disimpan | Rekaman tersimpan dan menempel ke rapat yang benar |
 | P1-05 | Mengubah rekaman jadi teks, bahasa Inggris dulu | Ada transkrip dari contoh rekaman |
 | P1-06 | Menambah Mandarin dan percakapan campur dua bahasa | Contoh rekaman campuran berhasil jadi transkrip |
+| P1-06c | Menambah bahasa Indonesia sebagai bahasa rapat | Rapat berbahasa Indonesia diterima, dan transkripsi memakai petunjuk bahasa Indonesia |
 | P1-07 | Menarik inti rapat: topik, keputusan, tugas, penanggung jawab, tenggat | Ada hasil terstruktur dari satu contoh rapat |
 | P1-08 | Menyusun notulen internal dua bahasa | Draf notulen internal jadi |
 | P1-09 | Menyusun notulen eksternal dua bahasa | Draf notulen eksternal jadi |
@@ -131,6 +133,7 @@ Pemilihan S3 dan Transcribe baru berlaku sebagai rencana. Pembuatannya menunggu 
 
 - Menjalankan rapat tatap muka dan mendapat rekaman yang bisa diputar ulang.
 - Mendapat transkrip yang menangani Inggris, Mandarin, dan percakapan campuran.
+- Membuat rapat dengan bahasa Indonesia. Notulennya masih dua bahasa, Inggris dan Mandarin; apakah bahasa Indonesia ikut masuk notulen belum diputuskan.
 - Mendapat dua notulen dua bahasa: satu internal, satu eksternal.
 - Melihat tanda peringatan kalau notulen eksternal mengandung isi internal, atau kalau dua bahasa tidak sejalan.
 - Mengubah dan menyetujui notulen, lalu mengunduhnya sebagai DOCX atau PDF.
