@@ -51,6 +51,12 @@ layout is a choice between hybrid (app, database and recordings in Indonesia, Sp
 OpenAI in Singapore) and all-Singapore. The hybrid keeps stored data in the country and
 sends only a copy abroad for processing.
 
+Deferred on purpose: the layout does not block P1-07, which needs only an LLM endpoint.
+Nothing is hard to change yet, because no cloud driver is written and no data is stored.
+Two deadlines do apply. Settle the storage region before the cloud storage driver is
+written (still pending from P1-04). Settle the residency commitment before any client is
+told where their meetings are kept, because that is a promise, not a setting.
+
 ### MOM language ruling, follow-up — 2026-10-20 (user decided)
 Two questions left open by the previous ruling are answered.
 
