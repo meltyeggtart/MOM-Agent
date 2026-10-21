@@ -118,12 +118,14 @@ record the change in PROGRESS.md when it does.
   deadlines came back null rather than invented. The model behind the temporary gateway
   is deepseek-flash; Azure OpenAI replaces it before release.
 
-- [ ] P1-08  Internal MOM generator (EN, ZH, ID) with audience-specific prompt
-  PRD: §8.2, §8.4   Files: backend/app/services/mom.py, backend/app/prompts/internal_mom.md, backend/app/schemas/mom.py
+- [x] P1-08  Internal MOM generator (EN, ZH, ID) with audience-specific prompt
+  PRD: §8.2, §8.4   Files: backend/app/services/mom.py, backend/app/prompts/internal_mom.md, backend/app/prompts/mom_translation.md, backend/app/schemas/mom.py, backend/tests/test_mom.py
   Done when: an Internal MOM draft carries all three languages in one document.
   Language rule settled 2026-10-20: three languages by default, not the PRD's two.
   Authored once in the meeting's language, then translated into the other two.
   The source is the transcript's detected language (settled 2026-10-20).
+  Verified 2026-10-20 on a live run: three versions with identical entry counts, dates
+  rendered natively (10月15日, 15 Oktober), names preserved.
 
 - [ ] P1-09  External MOM generator (EN, ZH, ID) with audience-specific prompt
   PRD: §8.3, §8.5   Files: backend/app/prompts/external_mom.md, backend/app/services/mom.py, backend/tests/test_mom.py

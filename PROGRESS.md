@@ -1,8 +1,8 @@
 # Progress
 
 ## Current state
-Phase: P1. Last done: P1-07 (meeting intelligence extraction)
-Next: P1-08
+Phase: P1. Last done: P1-08 (internal MOM, three languages)
+Next: P1-09
 Blockers: none
 Open decisions: the production LLM is a target, not a fact. Until 2026-10-20 the
 extractor runs through the Messages-compatible gateway present in this environment,
@@ -24,6 +24,27 @@ is answered — see the log. A Huawei SIS driver now exists as an alternative, b
 never run against the live service, so the provider is not settled by evidence yet.
 
 ## Log (newest first)
+
+### P1-08 — 2026-10-20 (done)
+Did: the internal MOM, authored once in the meeting's language and translated into the
+other two. `app/schemas/mom.py` holds one document with exactly one version per language,
+so hiding a language at review stays a view of the document rather than a deletion.
+`app/services/mom.py` writes the source version from the extracted facts, then translates
+it, and refuses a translation whose entry counts differ from the source.
+
+Also extracted `app/services/llm.py`, the Messages client both generators share, so the
+transport and the JSON handling are written once instead of twice.
+
+Verified: 51 tests pass, 9 of them new and offline, and ruff is clean. A live run on an
+English transcript produced three versions with identical counts: 2 topics, 2 decisions,
+2 action items, 1 open question, 2 internal notes. Names were preserved and the
+unassigned action stayed null in all three languages.
+
+Defect the live run found and the fix: the first translation prompt said to keep dates
+"exactly as written", and the Chinese version came back with "October 15" and "Friday" in
+English inside otherwise Chinese sentences. The rule now requires dates and weekdays to
+read naturally in the target language. The re-run produced 10月15日 and 星期五, and
+15 Oktober and Jumat.
 
 ### P1-07 — 2026-10-20 (done)
 Did: extraction of topics, decisions, action items, owners, deadlines and open questions
