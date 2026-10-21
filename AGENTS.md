@@ -69,7 +69,11 @@ Verified 2026-10-20: Indonesia Central exists (Jakarta, three availability zones
 PostgreSQL Flexible Server runs there, but Azure Speech's supported-region list omits it
 and no Azure OpenAI model table mentions Indonesia. Speech and OpenAI therefore appear
 to need Southeast Asia (Singapore) at the nearest. Blob Storage in Indonesia Central is
-assumed, not verified. Neither cloud driver is verified yet, because no credentials
+assumed, not verified.
+Layout settled 2026-10-20, user chose option A: the app, the database and the recordings
+stay in Indonesia Central, while Azure Speech and Azure OpenAI run in Singapore. The
+user asked to be reminded at build time, so confirm this layout again before writing
+either cloud driver. Neither cloud driver is verified yet, because no credentials
 exist in the working environment. Until then `app/services/storage.py` writes to a
 local directory and `app/services/speech.py` runs a local Whisper model. Both are
 single-method seams, so swapping a driver touches one file. The local model is `small`,

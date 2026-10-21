@@ -14,13 +14,27 @@ the other two translated from it. The source language is the one the transcript
 detected.
 Platform is settled: Azure, on infrastructure the user rents in Indonesia
 (`indonesiacentral`). This replaces the AWS plan, and no AWS code exists. Retention is
-settled: 90 days from upload, and account mode only. Region layout is open: Azure
-Speech and Azure OpenAI do not appear in Microsoft's Indonesia region lists, so both
-likely sit in Singapore. See the 2026-10-20 log entry. Every other PRD §19 item
+settled: 90 days from upload, and account mode only. Region layout is settled 2026-10-20
+as option A: app, database and recordings in Indonesia Central, Azure Speech and Azure
+OpenAI in Singapore. Re-confirm that layout with the user before writing either cloud
+driver; they asked to be reminded. Every other PRD §19 item
 is answered — see the log. A Huawei SIS driver now exists as an alternative, but it has
 never run against the live service, so the provider is not settled by evidence yet.
 
 ## Log (newest first)
+
+### Region layout ruling — 2026-10-20 (user decided)
+Option A, hybrid. The app, the PostgreSQL database and the recordings live in Indonesia
+Central. Azure Speech and Azure OpenAI, which Microsoft does not offer in Indonesia, run
+in Singapore (Southeast Asia). Audio and transcripts leave the country only for the
+processing call; stored data stays in Indonesia.
+
+The user asked to be reminded at build time: before writing either cloud driver, confirm
+the layout again. Recorded here so a later session does not build it on autopilot.
+
+Not chosen: all-Singapore (B), simpler but moves stored data abroad; self-hosted AI on
+the VM (C), which breaks the managed-services rule; an in-country AI provider (D),
+which has not been researched.
 
 ### Azure region check — 2026-10-20 (research, not a decision)
 The user rents Azure infrastructure in Indonesia, so the platform moves from AWS to
