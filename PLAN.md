@@ -111,9 +111,12 @@ record the change in PROGRESS.md when it does.
   Scope: the spoken meeting language and its transcript only. Whether Indonesian also
   enters the MOM is open and due before P1-08.
 
-- [ ] P1-07  Meeting intelligence extraction: topics, decisions, actions, owners, deadlines
-  PRD: §7.6, §7.7   Files: backend/app/services/intelligence.py, backend/app/schemas/insights.py, backend/tests/test_intelligence.py
+- [x] P1-07  Meeting intelligence extraction: topics, decisions, actions, owners, deadlines
+  PRD: §7.6, §7.7   Files: backend/app/services/intelligence.py, backend/app/schemas/insights.py, backend/app/prompts/extraction.md, backend/tests/test_intelligence.py
   Done when: structured JSON output on a sample.
+  Verified 2026-10-20 on live calls in English and Indonesian. Unnamed owners and
+  deadlines came back null rather than invented. The model behind the temporary gateway
+  is deepseek-flash; Azure OpenAI replaces it before release.
 
 - [ ] P1-08  Internal MOM generator (EN, ZH, ID) with audience-specific prompt
   PRD: §8.2, §8.4   Files: backend/app/services/mom.py, backend/app/prompts/internal_mom.md, backend/app/schemas/mom.py

@@ -1,17 +1,19 @@
 # Progress
 
 ## Current state
-Phase: P1. Last done: P1-06c (Indonesian as a meeting language)
-Next: P1-07
-Blockers: P1-07 needs the LLM choice.
-Open decisions: the LLM for meeting intelligence and MOM generation is still TBD
-(PRD §19.1). It blocks P1-07 as well as P1-08. Recording input is settled 2026-10-20:
-stay on local Whisper for now; a managed API is one class and one line behind the seam
-when credentials exist. MOM languages are settled 2026-10-20: English, Mandarin and
-Indonesian, all three by default, the reviewer chooses at review, a removed language is
-hidden rather than deleted, and the MOM is authored once in the meeting's language with
-the other two translated from it. The source language is the one the transcript
-detected.
+Phase: P1. Last done: P1-07 (meeting intelligence extraction)
+Next: P1-08
+Blockers: none
+Open decisions: the production LLM is a target, not a fact. Until 2026-10-20 the
+extractor runs through the Messages-compatible gateway present in this environment,
+which ignores the model name and serves deepseek-flash. Azure OpenAI replaces it before
+release, and the user asked to be reminded at that switch. Recording input is settled
+2026-10-20: stay on local Whisper for now; a managed API is one class and one line
+behind the seam when credentials exist. MOM languages are settled 2026-10-20: English,
+Mandarin and Indonesian, all three by default, the reviewer chooses at review, a removed
+language is hidden rather than deleted, and the MOM is authored once in the meeting's
+language with the other two translated from it. The source language is the one the
+transcript detected.
 Platform is settled: Azure, on infrastructure the user rents in Indonesia
 (`indonesiacentral`). This replaces the AWS plan, and no AWS code exists. Retention is
 settled: 90 days from upload, and account mode only. Region layout is settled 2026-10-20
@@ -22,6 +24,29 @@ is answered — see the log. A Huawei SIS driver now exists as an alternative, b
 never run against the live service, so the provider is not settled by evidence yet.
 
 ## Log (newest first)
+
+### P1-07 — 2026-10-20 (done)
+Did: extraction of topics, decisions, action items, owners, deadlines and open questions
+from a transcript, in `app/services/intelligence.py`, with the prompt in
+`app/prompts/extraction.md` and the shape in `app/schemas/insights.py`. The LLM sits
+behind `InsightExtractor`, one method, so changing provider is a one-class change.
+
+Temporary provider, and what it actually is: the user authorised the Messages-compatible
+endpoint already present in this environment. Probing it showed that it ignores the
+requested model name and answers as `deepseek-flash` for every name tried, including
+nonsense ones. So the model under test is DeepSeek Flash, not Claude, and not what
+production will use. Recorded because the user believed the key was an Anthropic one.
+Azure OpenAI remains the target and replaces it before release; the user asked to be
+reminded at that point.
+
+Verified: 42 tests pass, 11 of them new and offline by injecting the sender, and ruff is
+clean. A live call on an English transcript returned two topics, two decisions, two action
+items and one open question, leaving the unassigned contract review as owner null instead
+of inventing one. A live call on an Indonesian transcript answered in Indonesian, kept
+"hari Jumat" as spoken, and attributed the action to Budi.
+
+Not covered: a mixed English-Mandarin transcript, and any comparison against Azure
+OpenAI. Both wait for the production model.
 
 ### Region layout ruling — 2026-10-20 (user decided)
 Option A, hybrid. The app, the PostgreSQL database and the recordings live in Indonesia

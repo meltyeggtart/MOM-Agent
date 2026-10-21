@@ -27,6 +27,16 @@ class Settings(BaseSettings):
     huawei_obs_endpoint: str = ""
     huawei_sis_poll_seconds: float = 5.0
     huawei_sis_timeout_seconds: float = 3600.0
+    # Intelligence extraction. Temporary as of 2026-10-20: the user authorised the
+    # Messages-compatible gateway already present in this environment, which ignores
+    # the model name and always serves deepseek-flash. Azure OpenAI replaces it before
+    # release; the seam above keeps that a one-class change.
+    llm_provider: str = "anthropic_messages"
+    llm_model: str = "deepseek-flash"
+    llm_max_tokens: int = 4096
+    llm_timeout_seconds: float = 120.0
+    anthropic_base_url: str = ""
+    anthropic_api_key: str = ""
     worker_poll_seconds: int = 5
 
 
