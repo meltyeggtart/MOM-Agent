@@ -135,9 +135,14 @@ record the change in PROGRESS.md when it does.
   off-the-record remark about margin reached the internal MOM while appearing nowhere in
   the external MOM in any of EN, ZH or ID.
 
-- [ ] P1-10  Sensitive-content check on External MOM
+- [x] P1-10  Sensitive-content check on External MOM
   PRD: §8.5, §11.3   Files: backend/app/services/sensitive.py, backend/app/prompts/sensitive_check.md, backend/tests/test_sensitive.py
   Done when: seeded internal-only text is flagged.
+  Runs after the external MOM is written, on purpose: the writer's prompt is a request,
+  this is a second reader that can disagree with it.
+  Verified 2026-10-20 with two live cases. A document leaking the margin remark was
+  flagged twice, once for the English sentence and once for its Indonesian paraphrase,
+  while the clean Chinese version was left alone. A clean document produced no findings.
 
 - [ ] P1-11  Cross-language consistency check
   PRD: §8.6   Files: backend/app/services/consistency.py, backend/app/prompts/consistency_check.md, backend/tests/test_consistency.py

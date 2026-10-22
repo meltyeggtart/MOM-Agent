@@ -1,8 +1,8 @@
 # Progress
 
 ## Current state
-Phase: P1. Last done: P1-09 (external MOM, three languages)
-Next: P1-10
+Phase: P1. Last done: P1-10 (sensitive-content check)
+Next: P1-11
 Blockers: none
 Open decisions: the production LLM is a target, not a fact. Until 2026-10-20 the
 extractor runs through the Messages-compatible gateway present in this environment,
@@ -24,6 +24,25 @@ is answered — see the log. A Huawei SIS driver now exists as an alternative, b
 never run against the live service, so the provider is not settled by evidence yet.
 
 ## Log (newest first)
+
+### P1-10 — 2026-10-20 (done)
+Did: `app/services/sensitive.py`, an audit of the finished external minutes against the
+internal facts. It runs after the external MOM is written, deliberately: the writer's
+prompt is a request, and this is a second reader that can disagree with it. Each finding
+carries the language, the exact excerpt, a reason and a severity, so the reviewer sees
+where the problem is instead of a bare refusal.
+
+The check only accepts an external document; auditing an internal one would report a
+clean result while the file is full of notes, so that raises.
+
+Verified: 67 tests pass, 9 of them new and offline, ruff clean. Two live cases against the
+real model. The leaky document produced two findings, the English sentence and its
+Indonesian paraphrase ("marjin kami ... lebih tipis"), and did not flag the clean Chinese
+version. The clean document produced no findings.
+
+Limits worth knowing: this reader is another model, so it can be fooled, and two cases are
+not a benchmark. It catches disclosure, not the absence of judgement about what belongs in
+client minutes.
 
 ### P1-09 — 2026-10-20 (done)
 Did: the external MOM, reusing the writer-then-translate machinery. `Audience` picks the
