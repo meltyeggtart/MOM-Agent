@@ -144,3 +144,19 @@ def test_unknown_provider_raises(monkeypatch: pytest.MonkeyPatch) -> None:
             get_insight_extractor()
     finally:
         get_insight_extractor.cache_clear()
+
+
+def test_extracts_internal_risks() -> None:
+    payload = json.dumps({"risks": ["Margin is thinner than last quarter."]})
+    extractor = MessagesApiExtractor(sender=sender_returning(text_block(payload)))
+
+    insights = extractor.extract("transcript")
+
+    assert insights.risks == ["Margin is thinner than last quarter."]
+
+
+def test_risks_default_to_empty_when_absent() -> None:
+    payload = json.dumps({"decisions": [{"decision": "Proceed"}]})
+    extractor = MessagesApiExtractor(sender=sender_returning(text_block(payload)))
+
+    assert extractor.extract("transcript").risks == []

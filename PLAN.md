@@ -127,10 +127,13 @@ record the change in PROGRESS.md when it does.
   Verified 2026-10-20 on a live run: three versions with identical entry counts, dates
   rendered natively (10月15日, 15 Oktober), names preserved.
 
-- [ ] P1-09  External MOM generator (EN, ZH, ID) with audience-specific prompt
+- [x] P1-09  External MOM generator (EN, ZH, ID) with audience-specific prompt
   PRD: §8.3, §8.5   Files: backend/app/prompts/external_mom.md, backend/app/services/mom.py, backend/tests/test_mom.py
   Done when: an External MOM draft carries all three languages in one document.
   Same rule as P1-08: authored once in the meeting's language, then translated.
+  Verified 2026-10-20: three versions, internal_notes empty in all three, and a seeded
+  off-the-record remark about margin reached the internal MOM while appearing nowhere in
+  the external MOM in any of EN, ZH or ID.
 
 - [ ] P1-10  Sensitive-content check on External MOM
   PRD: §8.5, §11.3   Files: backend/app/services/sensitive.py, backend/app/prompts/sensitive_check.md, backend/tests/test_sensitive.py

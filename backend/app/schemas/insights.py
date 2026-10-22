@@ -29,3 +29,6 @@ class Insights(BaseModel):
     decisions: list[Decision] = Field(default_factory=list)
     action_items: list[ActionItem] = Field(default_factory=list)
     open_questions: list[OpenQuestion] = Field(default_factory=list)
+    # Worries and concerns, including ones said off the record. They feed the internal
+    # minutes only, and the external generator must never use them.
+    risks: list[str] = Field(default_factory=list)

@@ -1,6 +1,13 @@
+from enum import StrEnum
+
 from pydantic import BaseModel, Field, model_validator
 
 from app.schemas.meeting import Language
+
+
+class Audience(StrEnum):
+    internal = "internal"
+    external = "external"
 
 
 class MomTopic(BaseModel):
@@ -38,6 +45,7 @@ class MomDocument(BaseModel):
     """
 
     source_language: Language
+    audience: Audience = Audience.internal
     versions: list[MomVersion]
 
     @model_validator(mode="after")

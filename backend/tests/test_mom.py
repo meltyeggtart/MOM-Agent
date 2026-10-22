@@ -6,7 +6,7 @@ from pydantic import ValidationError
 
 from app.schemas.insights import Insights
 from app.schemas.meeting import Language
-from app.schemas.mom import MomDocument, MomVersion
+from app.schemas.mom import Audience, MomDocument, MomVersion
 from app.services.mom import (
     LlmMomGenerator,
     MeetingContext,
@@ -147,3 +147,51 @@ def test_default_generator_uses_the_llm() -> None:
         assert isinstance(get_mom_generator(), LlmMomGenerator)
     finally:
         get_mom_generator.cache_clear()
+
+
+def test_external_uses_the_client_prompt() -> None:
+    client = FakeClient(*[reply(internal_notes=[]) for _ in range(3)])
+
+    LlmMomGenerator(client).generate(MEETING, INSIGHTS, Audience.external)
+
+    system, _ = client.calls[0]
+    assert "client" in system.lower()
+    assert "internal_notes must always be an empty array" in system
+    assert '"risks" list' in system
+
+
+def test_external_carries_three_languages() -> None:
+    client = FakeClient(*[reply(internal_notes=[]) for _ in range(3)])
+
+    document = LlmMomGenerator(client).generate(MEETING, INSIGHTS, Audience.external)
+
+    assert document.audience is Audience.external
+    assert {version.language for version in document.versions} == set(Language)
+    assert len(client.calls) == 3
+
+
+def test_external_rejects_internal_notes() -> None:
+    client = FakeClient(reply())
+
+    with pytest.raises(MomGenerationError, match="internal notes"):
+        LlmMomGenerator(client).generate(MEETING, INSIGHTS, Audience.external)
+
+
+def test_external_rejects_notes_added_by_a_translation() -> None:
+    client = FakeClient(
+        reply(internal_notes=[]),
+        reply(internal_notes=["Margin is thin; do not tell the client."]),
+        reply(internal_notes=[]),
+    )
+
+    with pytest.raises(MomGenerationError, match="internal notes"):
+        LlmMomGenerator(client).generate(MEETING, INSIGHTS, Audience.external)
+
+
+def test_internal_notes_survive_for_the_internal_audience() -> None:
+    client = FakeClient(reply(), reply(), reply())
+
+    document = LlmMomGenerator(client).generate(MEETING, INSIGHTS, Audience.internal)
+
+    assert document.audience is Audience.internal
+    assert document.versions[0].content.internal_notes

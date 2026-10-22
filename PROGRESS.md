@@ -1,8 +1,8 @@
 # Progress
 
 ## Current state
-Phase: P1. Last done: P1-08 (internal MOM, three languages)
-Next: P1-09
+Phase: P1. Last done: P1-09 (external MOM, three languages)
+Next: P1-10
 Blockers: none
 Open decisions: the production LLM is a target, not a fact. Until 2026-10-20 the
 extractor runs through the Messages-compatible gateway present in this environment,
@@ -24,6 +24,26 @@ is answered — see the log. A Huawei SIS driver now exists as an alternative, b
 never run against the live service, so the provider is not settled by evidence yet.
 
 ## Log (newest first)
+
+### P1-09 — 2026-10-20 (done)
+Did: the external MOM, reusing the writer-then-translate machinery. `Audience` picks the
+prompt, the document records it, and an external document is rejected if the model puts
+anything in `internal_notes`, including when only a translation does.
+
+A gap this work exposed, and closed: extraction had no field for internal concerns, so the
+writer never saw them. "Off the record, our margin is thinner" reached neither MOM, and the
+first leak test therefore passed for the wrong reason. `Insights` gained `risks`; the
+extraction prompt fills it, the internal prompt carries it into `internal_notes`, and the
+external prompt forbids it.
+
+Verified: 58 tests pass, 7 of them new here, ruff clean. Live run on a transcript with a
+seeded off-the-record margin remark: the remark appeared in `insights.risks` and in the
+internal notes, and the strings margin, marjin, 利润 and 毛利 appeared nowhere in the
+external document in EN, ZH or ID. The external document carried all three languages with
+empty notes, and dates read natively (11月15日, 15 November, 星期五, Jumat).
+
+Still P1-10's job: this proves the prompt and the structure, not that no sensitive content
+can slip through in other words. The word-list scan above is a spot check, not a check.
 
 ### P1-08 — 2026-10-20 (done)
 Did: the internal MOM, authored once in the meeting's language and translated into the

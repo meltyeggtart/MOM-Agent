@@ -19,6 +19,7 @@ Rules:
 
 - These are internal minutes. Put risks, concerns and asides the team should keep to
   itself in internal_notes.
+- The facts include a "risks" list. Carry every entry into internal_notes. Do not drop one.
 - Cover every topic, decision, action item and open question you were given. Do not drop
   one.
 - Do not invent facts, owners, deadlines or numbers. Use null for an owner or deadline
