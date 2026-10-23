@@ -134,8 +134,8 @@ Development wiring (since P1-14):
   `uvicorn app.main:app --reload --port 8010`, which is the proxy's default target
   (`API_PROXY_TARGET` overrides it).
 - The platform's service worker on `localhost:5173` also answers `/api/auth/me`, so a
-  browser session there loses the sign-in on reload. Verify auth flows on a different
-  port (for example `npx vite --port 5174`).
+  browser session there loses the sign-in on reload. The dev server therefore defaults
+  to 5174 (`VITE_DEV_PORT` overrides it).
 
 ## Conventions (naming, error handling, logging, i18n EN/ZH)
 - Naming: snake_case in Python, camelCase in TypeScript, kebab-case for file names.
