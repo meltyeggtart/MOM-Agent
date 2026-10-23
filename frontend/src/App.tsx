@@ -3,10 +3,17 @@ import { useState } from 'react'
 import { messages } from './i18n/messages'
 import Meeting from './pages/Meeting'
 import NewMeeting from './pages/NewMeeting'
+import Review from './pages/Review'
 
 const text = messages.navigation
 
-type Screen = 'newMeeting' | 'meeting'
+type Screen = 'newMeeting' | 'meeting' | 'review'
+
+const screens: { id: Screen; label: string }[] = [
+  { id: 'newMeeting', label: text.newMeeting },
+  { id: 'meeting', label: text.meeting },
+  { id: 'review', label: text.review },
+]
 
 function App() {
   const [screen, setScreen] = useState<Screen>('newMeeting')
@@ -14,22 +21,20 @@ function App() {
   return (
     <>
       <nav aria-label={text.label}>
-        <button
-          type="button"
-          onClick={() => setScreen('newMeeting')}
-          aria-current={screen === 'newMeeting' ? 'page' : undefined}
-        >
-          {text.newMeeting}
-        </button>
-        <button
-          type="button"
-          onClick={() => setScreen('meeting')}
-          aria-current={screen === 'meeting' ? 'page' : undefined}
-        >
-          {text.meeting}
-        </button>
+        {screens.map((item) => (
+          <button
+            key={item.id}
+            type="button"
+            onClick={() => setScreen(item.id)}
+            aria-current={screen === item.id ? 'page' : undefined}
+          >
+            {item.label}
+          </button>
+        ))}
       </nav>
-      {screen === 'newMeeting' ? <NewMeeting /> : <Meeting />}
+      {screen === 'newMeeting' && <NewMeeting />}
+      {screen === 'meeting' && <Meeting />}
+      {screen === 'review' && <Review />}
     </>
   )
 }

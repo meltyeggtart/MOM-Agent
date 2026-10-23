@@ -153,12 +153,20 @@ record the change in PROGRESS.md when it does.
   action_items[0].deadline, naming both dates. The Chinese 2026年11月15日 was correctly
   read as equal to 15 November 2026 rather than as a difference.
 
-- [ ] P1-12  Review screen: edit, choose languages, approve, version history
+- [x] P1-12  Review screen: edit, choose languages, approve, version history
   PRD: §10   Files: backend/app/api/mom.py, frontend/src/pages/Review.tsx, frontend/src/components/MomEditor.tsx
   Done when: approved MOM is locked and versioned.
   Added 2026-10-20: the screen also lets the reviewer choose which MOM languages to
   keep. A removed language is hidden, not deleted, so it stays in the version and can
   be restored.
+  Chosen 2026-10-20: the visible set lives inside the MOM document, not in a new table
+  column. Nothing else needs it before P1-13, which reads it for export, and the
+  existing Mom and MomVersion tables already carry versions and approval, so no
+  migration was needed.
+  Verified 2026-10-20 against a running server: approving locks the version (a later
+  edit returns 409), reopening writes version 2 and leaves version 1 approved, and
+  hiding Mandarin keeps all three language versions stored. The screen was driven in a
+  browser through load, edit, save and approve.
 
 - [ ] P1-13  DOCX and PDF export
   PRD: §10   Files: backend/app/services/documents.py, backend/app/api/export.py, backend/tests/test_documents.py

@@ -29,3 +29,15 @@ fieldset {
 fieldset label {
   margin-right: 1rem;
 }
+
+.mom-editor > label {
+  display: grid;
+  gap: 0.25rem;
+  max-width: 40rem;
+  margin-bottom: 0.75rem;
+}
+
+.mom-editor textarea {
+  min-height: 4rem;
+  font: inherit;
+}

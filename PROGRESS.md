@@ -1,8 +1,8 @@
 # Progress
 
 ## Current state
-Phase: P1. Last done: P1-11 (cross-language consistency check)
-Next: P1-12
+Phase: P1. Last done: P1-12 (review screen)
+Next: P1-13
 Blockers: none
 Open decisions: the production LLM is a target, not a fact. Until 2026-10-20 the
 extractor runs through the Messages-compatible gateway present in this environment,
@@ -51,6 +51,33 @@ Live transcription and live translation change none of this. They decide whether
 processing happens during the meeting or after it, not where it happens.
 
 ## Log (newest first)
+
+### P1-12 — 2026-10-20 (done)
+Did: `app/api/mom.py`, the review API. Store the first draft, read it, edit it, approve
+it, and reopen it as a new version. `frontend/src/pages/Review.tsx` and
+`components/MomEditor.tsx` are the screen that drives those calls.
+
+Approval locks a version: an edit to an approved MOM returns 409 rather than silently
+changing history. Editing after approval goes through reopen, which writes version N+1
+as a draft and leaves the approved version untouched.
+
+Chosen: the visible-language set lives in the MOM document as `visible_languages`, not
+in a new table column. The existing Mom and MomVersion tables already hold versions and
+approval, so nothing needed migrating, and P1-13 reads the same field for export.
+
+Simplified: lists are edited as text, one entry per line, with "|" between fields (for
+example `Send the plan | Ana | 15 November 2026`). A row editor would be friendlier, but
+this keeps the first screen small and round-trips without loss.
+
+Verified: 85 tests pass, 11 of them new, ruff and eslint clean, frontend builds. Then
+against a running server and database: store 201, approve 200, edit after approve 409,
+reopen produces version 2 with version 1 still approved, and hiding Mandarin leaves all
+three versions stored. The screen itself was driven in a browser through load, edit, save
+and approve; the approved state greyed out Save and Approve and enabled Reopen.
+
+Limit: the screen takes a meeting reference typed by hand, because there is no list of
+meetings yet. Access control arrives in P1-14, and `approved_by` is still an optional
+string with nothing checking it.
 
 ### P1-11 — 2026-10-20 (done)
 Did: `app/services/consistency.py`, a semantic comparison of the three versions. The

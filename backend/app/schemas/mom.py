@@ -46,7 +46,21 @@ class MomDocument(BaseModel):
 
     source_language: Language
     audience: Audience = Audience.internal
+    # Every language is stored; this is what the reviewer chose to show. Hiding is
+    # never deletion, so a hidden language can be brought back without regenerating.
+    visible_languages: list[Language] = Field(default_factory=lambda: list(Language))
     versions: list[MomVersion]
+
+    @model_validator(mode="after")
+    def _visible_languages_are_stored(self) -> "MomDocument":
+        if not self.visible_languages:
+            raise ValueError("At least one language must stay visible")
+        if len(set(self.visible_languages)) != len(self.visible_languages):
+            raise ValueError("A language cannot be listed twice")
+        stored = {version.language for version in self.versions}
+        if set(self.visible_languages) - stored:
+            raise ValueError("A visible language has no version in this document")
+        return self
 
     @model_validator(mode="after")
     def _one_version_per_language(self) -> "MomDocument":
