@@ -40,9 +40,10 @@ Answered 2026-10-20: the consent is shown every time, with no "do not ask again"
 When live translation is turned on while live transcription is off, the offer turns both
 on together, explained in one dialog because it is one action.
 
-Still open: the final wording. "May increase cost or lower latency" reads inverted,
-because the cost rises and latency usually gets worse rather than better. Draft wording
-was proposed.
+Wording deliberately left open 2026-10-20: the user chose to settle it when Phase 2 is
+built, not now. Do not block anything on it, and do not reuse a draft as if it were
+agreed. One correction is already known: "may increase cost or lower latency" reads
+inverted, because the cost rises and latency usually gets worse rather than better.
 
 ### P1-10 — 2026-10-20 (done)
 Did: `app/services/sensitive.py`, an audit of the finished external minutes against the

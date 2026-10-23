@@ -182,6 +182,8 @@ Switching it ON first shows a consent dialog saying the feature adds processing 
 may affect performance, and the switch only moves after the user agrees. Cancelling leaves
 it OFF. The consent appears every time, with no "do not ask again" option. This control is
 a separate button from the live translation control; never one combined switch.
+The dialog wording is not settled. It is left open on purpose until this step is built;
+do not treat any earlier draft as agreed.
 
 ## Phase 3 — Optional Live Translation (PRD §13)
 Live Translation On/Off control, independent of but dependent on transcription,
