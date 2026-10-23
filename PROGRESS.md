@@ -1,8 +1,8 @@
 # Progress
 
 ## Current state
-Phase: P1. Last done: P1-10 (sensitive-content check)
-Next: P1-11
+Phase: P1. Last done: P1-11 (cross-language consistency check)
+Next: P1-12
 Blockers: none
 Open decisions: the production LLM is a target, not a fact. Until 2026-10-20 the
 extractor runs through the Messages-compatible gateway present in this environment,
@@ -51,6 +51,23 @@ Live transcription and live translation change none of this. They decide whether
 processing happens during the meeting or after it, not where it happens.
 
 ## Log (newest first)
+
+### P1-11 — 2026-10-20 (done)
+Did: `app/services/consistency.py`, a semantic comparison of the three versions. The
+generator already refuses a translation whose entry counts differ, which catches a dropped
+decision. It cannot catch a decision whose date changed, so this reads for meaning.
+
+Each mismatch names the field, describes both values, and lists the versions that disagree.
+A single language is rejected as a mismatch, because one version cannot disagree with
+itself.
+
+Verified: 74 tests pass, 7 of them new and offline, ruff clean. Two live cases. A
+consistent document produced nothing. Changing the Indonesian deadline to 15 September was
+flagged at action_items[0].deadline, naming both dates. The Chinese 2026年11月15日 was read
+as equal to 15 November 2026, so the date-format difference did not become a false finding.
+
+Limits: this compares what the versions say, not what the meeting actually contained. Three
+versions that are wrong in the same way pass, and the transcript is the only defence there.
 
 ### Live features default off — 2026-10-20 (user decision, nothing built yet)
 A requirement, not work done. Live transcription (Phase 2) and live translation (Phase 3)

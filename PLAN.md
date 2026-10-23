@@ -144,10 +144,14 @@ record the change in PROGRESS.md when it does.
   flagged twice, once for the English sentence and once for its Indonesian paraphrase,
   while the clean Chinese version was left alone. A clean document produced no findings.
 
-- [ ] P1-11  Cross-language consistency check
+- [x] P1-11  Cross-language consistency check
   PRD: §8.6   Files: backend/app/services/consistency.py, backend/app/prompts/consistency_check.md, backend/tests/test_consistency.py
   Done when: a mismatch between EN, ZH and ID is flagged.
   Widened 2026-10-20 from the PRD's EN/ZH pair to three languages.
+  Verified 2026-10-20 with two live cases. A consistent document produced no mismatch.
+  The same document with the Indonesian deadline changed to 15 September was flagged at
+  action_items[0].deadline, naming both dates. The Chinese 2026年11月15日 was correctly
+  read as equal to 15 November 2026 rather than as a difference.
 
 - [ ] P1-12  Review screen: edit, choose languages, approve, version history
   PRD: §10   Files: backend/app/api/mom.py, frontend/src/pages/Review.tsx, frontend/src/components/MomEditor.tsx
