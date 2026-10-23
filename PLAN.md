@@ -180,8 +180,8 @@ Not yet broken into atomic steps.
 Settled 2026-10-20 (user): the control defaults to OFF at the start of every meeting.
 Switching it ON first shows a consent dialog saying the feature adds processing cost and
 may affect performance, and the switch only moves after the user agrees. Cancelling leaves
-it OFF. This control is a separate button from the live translation control; never one
-combined switch.
+it OFF. The consent appears every time, with no "do not ask again" option. This control is
+a separate button from the live translation control; never one combined switch.
 
 ## Phase 3 — Optional Live Translation (PRD §13)
 Live Translation On/Off control, independent of but dependent on transcription,
@@ -189,7 +189,9 @@ original and translated text, latency and code-switching validation, prospective
 resume with no backfill.
 Not yet broken into atomic steps.
 Settled 2026-10-20 (user): same rules as Phase 2. Defaults to OFF, has its own separate
-control, and shows its own consent dialog before it turns on.
+control, and shows its own consent dialog before it turns on. When it is turned on while
+live transcription is off, the offer turns both on together and explains both in one
+dialog, because it is one action by the user.
 
 ## Phase 4 — Extended Meeting Intelligence (PRD §13)
 Terminology and knowledge base/RAG, confirmed speaker-name mapping, meeting

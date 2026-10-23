@@ -36,9 +36,13 @@ recorded in PLAN.md for the phase that builds them:
 - The two controls stay separate buttons. Live translation depends on live transcription,
   but transcription must be usable on its own.
 
-Open, needs the user: whether consent is asked every time or remembered per meeting, and
-the final wording. "May increase cost or lower latency" reads inverted, because the cost
-rises and latency usually gets worse rather than better. Draft wording was proposed.
+Answered 2026-10-20: the consent is shown every time, with no "do not ask again" option.
+When live translation is turned on while live transcription is off, the offer turns both
+on together, explained in one dialog because it is one action.
+
+Still open: the final wording. "May increase cost or lower latency" reads inverted,
+because the cost rises and latency usually gets worse rather than better. Draft wording
+was proposed.
 
 ### P1-10 — 2026-10-20 (done)
 Did: `app/services/sensitive.py`, an audit of the finished external minutes against the
