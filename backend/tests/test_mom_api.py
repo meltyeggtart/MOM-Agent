@@ -86,10 +86,12 @@ def test_edit_updates_the_draft(client: TestClient) -> None:
 def test_approval_locks_the_draft(client: TestClient) -> None:
     meeting_id = create_meeting(client)
     store(client, meeting_id)
+    me = client.get("/auth/me").json()
 
+    # The body names someone else; the server must ignore it and record the session.
     approved = client.post(
         f"/meetings/{meeting_id}/moms/internal/approve",
-        json={"approved_by": "Reviewer"},
+        json={"approved_by": "Someone Else"},
     )
     blocked = client.put(
         f"/meetings/{meeting_id}/moms/internal/draft", json=payload()
@@ -97,7 +99,7 @@ def test_approval_locks_the_draft(client: TestClient) -> None:
 
     assert approved.status_code == 200
     assert approved.json()["status"] == "approved"
-    assert approved.json()["versions"][0]["approved_by"] == "Reviewer"
+    assert approved.json()["versions"][0]["approved_by"] == me["email"]
     assert approved.json()["versions"][0]["approved_at"] is not None
     assert blocked.status_code == 409
 

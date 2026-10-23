@@ -1,3 +1,4 @@
+import uuid
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -5,7 +6,8 @@ import pytest
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.db.models import Meeting, Recording, Transcript
+from app.core.security import hash_password
+from app.db.models import Meeting, Recording, Transcript, User
 from app.services.speech import WhisperSpeechToText
 from app.services.storage import LocalAudioStorage
 from app.worker import _language_for, transcribe_pending
@@ -31,7 +33,14 @@ def stored_audio(tmp_path: Path) -> LocalAudioStorage:
 
 
 def _meeting(session: Session, languages: list[str] | None = None) -> Meeting:
+    owner = User(
+        email=f"owner-{uuid.uuid4().hex[:8]}@example.com",
+        password_hash=hash_password("unit-test-password"),
+    )
+    session.add(owner)
+    session.commit()
     meeting = Meeting(
+        owner_id=owner.id,
         title="Kickoff",
         meeting_at=datetime(2026, 11, 2, 9, 30, tzinfo=UTC),
         languages=languages or ["en"],

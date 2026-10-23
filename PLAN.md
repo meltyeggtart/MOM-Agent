@@ -188,7 +188,7 @@ record the change in PROGRESS.md when it does.
   its appearance is unconfirmed. Layout is deliberately plain: one page per language,
   no logo, and no page numbers.
 
-- [ ] P1-14  Basic access control (account mode only)
+- [x] P1-14  Basic access control (account mode only)
   PRD: §11   Files: backend/app/api/auth.py, backend/app/core/security.py, backend/app/db/models.py
   Done when: unauthorized access is blocked.
   Guest mode dropped 2026-10-15, so the guest-deletion half is gone. Deliberate

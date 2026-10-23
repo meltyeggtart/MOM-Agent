@@ -37,6 +37,11 @@ class Settings(BaseSettings):
     llm_timeout_seconds: float = 120.0
     anthropic_base_url: str = ""
     anthropic_api_key: str = ""
+    # Session lifetime. Fourteen days keeps a reviewer signed in across a fortnight of
+    # meetings without holding a credential forever.
+    session_days: int = 14
+    # Production runs behind TLS; local development does not, so this defaults off.
+    cookie_secure: bool = False
     worker_poll_seconds: int = 5
 
 

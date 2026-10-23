@@ -1,8 +1,8 @@
 # Progress
 
 ## Current state
-Phase: P1. Last done: P1-13 (DOCX and PDF export)
-Next: P1-14
+Phase: P1. Last done: P1-14 (accounts and sessions)
+Next: P1-15 (Phase 1 acceptance run)
 Blockers: none
 Open decisions: the production LLM is a target, not a fact. Until 2026-10-20 the
 extractor runs through the Messages-compatible gateway present in this environment,
@@ -51,6 +51,40 @@ Live transcription and live translation change none of this. They decide whether
 processing happens during the meeting or after it, not where it happens.
 
 ## Log (newest first)
+
+### P1-14 — 2026-10-20 (done)
+Did: accounts and sessions. `app/core/security.py` hashes passwords with PBKDF2 and
+session tokens with SHA-256. `app/api/auth.py` serves register, login, logout and
+`/auth/me`; the HTTP-only `mom_session` cookie is the only credential and the digest,
+never the token, is stored. Every meeting and MOM route now needs a signed-in account
+and answers 404 for another account's meeting, so the existence of a meeting does not
+leak.
+
+Frontend: `api.ts` wraps `fetch` with `credentials: "include"`, `Login.tsx` is the
+sign-in and create-account screen, and `App.tsx` gates the three existing screens
+behind a session check on mount. `vite.config.ts` proxies `/api` to the backend, which
+keeps the cookie first-party in development.
+
+Found: port 8000 in this sandbox belongs to the Agent Canvas platform, so uvicorn
+never bound and the browser talked to the wrong server. The API now runs on 8010 and
+the proxy target follows `API_PROXY_TARGET`.
+
+Found while verifying: the platform's own service worker on `localhost:5173` answers
+`/api/auth/me`, so the app's session check never reached our backend there and the
+login form reappeared on reload. That is a collision in this sandbox only. Checked on
+`localhost:5174`, where the session restores from the cookie with no login form, and
+the sign-out and sign-in flow both work.
+
+Fixed while verifying: `tests/test_auth.py` used a fixed address and assumed empty
+tables, so the account left behind by the browser run made nine tests fail. Addresses
+are now unique per run and the session queries filter on the account under test.
+
+Verified: 118 tests pass, ruff clean, `npm run build` and `npm run lint` clean. Browser
+run: register, create a meeting, reload (still signed in), sign out, sign in.
+
+Notes: the test suite runs against the development database. Writes are rolled back,
+but rows from a dev run or a browser session stay visible, so a test must never assume
+an empty table.
 
 ### P1-13 — 2026-10-20 (done)
 Did: `app/services/documents.py` turns a MOM into Word or PDF, using only the languages

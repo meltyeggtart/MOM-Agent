@@ -127,6 +127,16 @@ Frontend, run from `frontend/`:
 - build:   `npm run build`
 - test:    not wired yet. Vitest arrives with the first frontend test step.
 
+Development wiring (since P1-14):
+- The frontend calls `/api/...` on its own origin and `vite.config.ts` proxies that to
+  the backend, so the session cookie stays first-party.
+- Port 8000 belongs to the Agent Canvas platform here, not to us. Run the API on 8010:
+  `uvicorn app.main:app --reload --port 8010`, which is the proxy's default target
+  (`API_PROXY_TARGET` overrides it).
+- The platform's service worker on `localhost:5173` also answers `/api/auth/me`, so a
+  browser session there loses the sign-in on reload. Verify auth flows on a different
+  port (for example `npx vite --port 5174`).
+
 ## Conventions (naming, error handling, logging, i18n EN/ZH)
 - Naming: snake_case in Python, camelCase in TypeScript, kebab-case for file names.
 - Errors: typed exceptions in services, one JSON error shape from the API, and no

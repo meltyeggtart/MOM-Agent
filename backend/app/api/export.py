@@ -6,6 +6,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, Response
 from sqlalchemy.orm import Session
 
+from app.api.auth import CurrentUser
 from app.api.mom import current_version, load_mom
 from app.db.session import get_session
 from app.schemas.mom import Audience, MomDocument
@@ -21,8 +22,10 @@ DOCX_TYPE = (
 PDF_TYPE = "application/pdf"
 
 
-def _document(session: Session, meeting_id: uuid.UUID, audience: Audience) -> MomDocument:
-    mom = load_mom(session, meeting_id, audience)
+def _document(
+    session: Session, meeting_id: uuid.UUID, audience: Audience, owner_id: uuid.UUID
+) -> MomDocument:
+    mom = load_mom(session, meeting_id, audience, owner_id)
     return MomDocument.model_validate(current_version(mom).content)
 
 
@@ -36,9 +39,12 @@ def _attachment(content: bytes, media_type: str, filename: str) -> Response:
 
 @router.get("/{audience}/export.docx")
 def export_docx(
-    meeting_id: uuid.UUID, audience: Audience, session: SessionDep
+    meeting_id: uuid.UUID,
+    audience: Audience,
+    session: SessionDep,
+    user: CurrentUser,
 ) -> Response:
-    document = _document(session, meeting_id, audience)
+    document = _document(session, meeting_id, audience, user.id)
     return _attachment(
         to_docx(document), DOCX_TYPE, f"mom-{meeting_id}-{audience.value}.docx"
     )
@@ -46,9 +52,12 @@ def export_docx(
 
 @router.get("/{audience}/export.pdf")
 def export_pdf(
-    meeting_id: uuid.UUID, audience: Audience, session: SessionDep
+    meeting_id: uuid.UUID,
+    audience: Audience,
+    session: SessionDep,
+    user: CurrentUser,
 ) -> Response:
-    document = _document(session, meeting_id, audience)
+    document = _document(session, meeting_id, audience, user.id)
     return _attachment(
         to_pdf(document), PDF_TYPE, f"mom-{meeting_id}-{audience.value}.pdf"
     )

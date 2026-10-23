@@ -1,12 +1,10 @@
 import { useState } from 'react'
 
+import { apiFetch } from '../api'
 import MomEditor, { type MomDocument } from '../components/MomEditor'
 import { messages } from '../i18n/messages'
 
 const text = messages.review
-
-const API_BASE_URL: string =
-  import.meta.env.VITE_API_BASE_URL ?? 'http://127.0.0.1:8000'
 
 const LANGUAGES = ['en', 'zh', 'id'] as const
 
@@ -35,7 +33,7 @@ function Review() {
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
 
-  const base = `${API_BASE_URL}/meetings/${meetingId}/moms/${audience}`
+  const base = `/meetings/${meetingId}/moms/${audience}`
   const locked = mom?.status === 'approved'
   const current = mom?.versions[mom.versions.length - 1]
 
@@ -50,7 +48,7 @@ function Review() {
     setError('')
     setNotice('')
     try {
-      const response = await fetch(url, init)
+      const response = await apiFetch(url, init)
       if (!response.ok) {
         const body = (await response.json().catch(() => null)) as {
           detail?: string

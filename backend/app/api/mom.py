@@ -13,7 +13,9 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
-from app.db.models import Meeting, Mom, MomStatus, MomVersion
+from app.api.auth import CurrentUser
+from app.api.meetings import load_meeting
+from app.db.models import Mom, MomStatus, MomVersion
 from app.db.session import get_session
 from app.schemas.mom import Audience, MomDocument
 
@@ -57,24 +59,16 @@ class MomRead(BaseModel):
         )
 
 
-class ApproveRequest(BaseModel):
-    approved_by: str | None = None
-
-
 SessionDep = Annotated[Session, Depends(get_session)]
 
 
-def _meeting(session: Session, meeting_id: uuid.UUID) -> Meeting:
-    meeting = session.get(Meeting, meeting_id)
-    if meeting is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Meeting not found"
-        )
-    return meeting
-
-
-def load_mom(session: Session, meeting_id: uuid.UUID, audience: Audience) -> Mom:
-    _meeting(session, meeting_id)
+def load_mom(
+    session: Session,
+    meeting_id: uuid.UUID,
+    audience: Audience,
+    owner_id: uuid.UUID,
+) -> Mom:
+    load_meeting(session, meeting_id, owner_id)
     mom = (
         session.query(Mom)
         .filter(Mom.meeting_id == meeting_id, Mom.audience == audience.value)
@@ -107,9 +101,10 @@ def store_version(
     audience: Audience,
     document: MomDocument,
     session: SessionDep,
+    user: CurrentUser,
 ) -> MomRead:
     """Store a freshly generated MOM as the first draft."""
-    _meeting(session, meeting_id)
+    load_meeting(session, meeting_id, user.id)
     _check_audience(document, audience)
 
     existing = (
@@ -139,9 +134,9 @@ def store_version(
 
 @router.get("/{audience}", response_model=MomRead)
 def read_mom(
-    meeting_id: uuid.UUID, audience: Audience, session: SessionDep
+    meeting_id: uuid.UUID, audience: Audience, session: SessionDep, user: CurrentUser
 ) -> MomRead:
-    return MomRead.of(load_mom(session, meeting_id, audience))
+    return MomRead.of(load_mom(session, meeting_id, audience, user.id))
 
 
 @router.put("/{audience}/draft", response_model=MomRead)
@@ -150,9 +145,10 @@ def update_draft(
     audience: Audience,
     document: MomDocument,
     session: SessionDep,
+    user: CurrentUser,
 ) -> MomRead:
     _check_audience(document, audience)
-    mom = load_mom(session, meeting_id, audience)
+    mom = load_mom(session, meeting_id, audience, user.id)
     if mom.status != MomStatus.draft:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
@@ -173,9 +169,9 @@ def approve(
     meeting_id: uuid.UUID,
     audience: Audience,
     session: SessionDep,
-    payload: ApproveRequest | None = None,
+    user: CurrentUser,
 ) -> MomRead:
-    mom = load_mom(session, meeting_id, audience)
+    mom = load_mom(session, meeting_id, audience, user.id)
     if mom.status != MomStatus.draft:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT, detail="The MOM is already approved"
@@ -183,7 +179,8 @@ def approve(
 
     current = current_version(mom)
     current.approved_at = datetime.now(UTC)
-    current.approved_by = payload.approved_by if payload else None
+    # Taken from the session, not the request, so the trail cannot name someone else.
+    current.approved_by = user.email
     mom.status = MomStatus.approved
     session.commit()
     session.refresh(mom)
@@ -192,10 +189,10 @@ def approve(
 
 @router.post("/{audience}/reopen", response_model=MomRead)
 def reopen(
-    meeting_id: uuid.UUID, audience: Audience, session: SessionDep
+    meeting_id: uuid.UUID, audience: Audience, session: SessionDep, user: CurrentUser
 ) -> MomRead:
     """Start a new draft from the approved version, leaving that version intact."""
-    mom = load_mom(session, meeting_id, audience)
+    mom = load_mom(session, meeting_id, audience, user.id)
     if mom.status != MomStatus.approved:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
