@@ -81,6 +81,10 @@ the first size that handles Mandarin and English code-switching acceptably; `tin
 garbled Mandarin badly. Still TBD: the LLM for MOM generation, due before P1-08. The
 queue and the remaining products follow those choices.
 
+Residency facts, including what is verified and what is only assumed, are collected in
+`PROGRESS.md` under "Data residency — what is known". Read that before writing any
+client-facing sentence about where meeting data is stored or processed.
+
 On 2026-10-19 the speech seam also gained a Huawei Cloud SIS driver, selected with
 `SPEECH_PROVIDER=huawei`, because the customer asked whether the whole stack could run
 on Huawei. It has never called the live service: there are no Huawei credentials here.

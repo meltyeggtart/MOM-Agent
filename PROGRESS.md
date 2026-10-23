@@ -23,6 +23,33 @@ driver; they asked to be reminded. Every other PRD §19 item
 is answered — see the log. A Huawei SIS driver now exists as an alternative, but it has
 never run against the live service, so the provider is not settled by evidence yet.
 
+## Data residency — what is known (2026-10-20)
+
+One place to check before anyone writes a client promise about where meeting data goes.
+It exists because three things go wrong without it: a promise gets written from memory, an
+assumption hardens into a fact, and the detail is lost when the session ends.
+
+| Data or step | Where | Status |
+| --- | --- | --- |
+| App server, PostgreSQL | Azure, Indonesia Central | settled |
+| Recordings (Blob Storage) | Azure, Indonesia Central | assumed, not confirmed with Microsoft |
+| Batch transcription (Azure Speech) | Azure, Singapore | no Indonesian region offered |
+| Extraction, MOM, translation (Azure OpenAI) | Azure, Singapore | no Indonesian model table |
+
+Today, before any Azure AI credential exists, only the first row runs as described.
+Transcription is local Whisper on the Indonesian VM, so it stays in the country. MOM
+generation goes to the temporary gateway at ecoapi.ai, whose processing location is
+unknown; its website names Singapore and Indonesia, but that is marketing text, not a
+processing commitment.
+
+So "recordings are stored in Indonesia" is true. "Nothing leaves Indonesia" is not, and
+must not be said until that gateway is replaced and Speech and OpenAI are live. Full
+in-country processing would need self-hosted models, which breaks the managed-services
+rule, or an Indonesian provider, which nobody has researched.
+
+Live transcription and live translation change none of this. They decide whether
+processing happens during the meeting or after it, not where it happens.
+
 ## Log (newest first)
 
 ### Live features default off — 2026-10-20 (user decision, nothing built yet)
