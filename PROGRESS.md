@@ -25,6 +25,21 @@ never run against the live service, so the provider is not settled by evidence y
 
 ## Log (newest first)
 
+### Live features default off — 2026-10-20 (user decision, nothing built yet)
+A requirement, not work done. Live transcription (Phase 2) and live translation (Phase 3)
+do not exist yet, so there is no switch whose default could be changed. The behaviour is
+recorded in PLAN.md for the phase that builds them:
+
+- Both default to OFF at the start of every meeting.
+- Turning either one on first shows a consent dialog naming the cost and performance
+  effect. The switch only moves after the user agrees; cancelling leaves it off.
+- The two controls stay separate buttons. Live translation depends on live transcription,
+  but transcription must be usable on its own.
+
+Open, needs the user: whether consent is asked every time or remembered per meeting, and
+the final wording. "May increase cost or lower latency" reads inverted, because the cost
+rises and latency usually gets worse rather than better. Draft wording was proposed.
+
 ### P1-10 — 2026-10-20 (done)
 Did: `app/services/sensitive.py`, an audit of the finished external minutes against the
 internal facts. It runs after the external MOM is written, deliberately: the writer's
