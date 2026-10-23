@@ -1,8 +1,8 @@
 # Progress
 
 ## Current state
-Phase: P1. Last done: P1-12 (review screen)
-Next: P1-13
+Phase: P1. Last done: P1-13 (DOCX and PDF export)
+Next: P1-14
 Blockers: none
 Open decisions: the production LLM is a target, not a fact. Until 2026-10-20 the
 extractor runs through the Messages-compatible gateway present in this environment,
@@ -51,6 +51,29 @@ Live transcription and live translation change none of this. They decide whether
 processing happens during the meeting or after it, not where it happens.
 
 ## Log (newest first)
+
+### P1-13 — 2026-10-20 (done)
+Did: `app/services/documents.py` turns a MOM into Word or PDF, using only the languages
+the reviewer kept. `app/api/export.py` serves them as
+`/meetings/{id}/moms/{audience}/export.docx` and `.../export.pdf`.
+
+Chosen: python-docx and reportlab, both pure Python. reportlab carries the STSong-Light
+Chinese font, so no font file is downloaded or committed, and the deployment image grows
+by two libraries instead of a 15 MB font.
+
+Found by rendering the pages to images: putting Latin text in the Chinese font makes
+reportlab measure the line with the wrong widths. Words overlapped ("thebudget") and the
+"·" separator vanished. Latin now uses Helvetica and only Chinese runs switch font.
+
+Found by reading the extracted text: the bullet came out as a control character, so the
+bullet is set in the Latin font.
+
+Verified: 13 new tests, 98 in total. Both formats are generated and read back, visible
+languages appear, a hidden one does not, and an external MOM carries no internal notes.
+The API returns the right type and filename, and an unknown meeting gives 404.
+
+Limit: the Word file was read back with python-docx, not opened in Word, so how it looks
+in a real word processor is unconfirmed. The PDF was rendered and inspected.
 
 ### P1-12 — 2026-10-20 (done)
 Did: `app/api/mom.py`, the review API. Store the first draft, read it, edit it, approve

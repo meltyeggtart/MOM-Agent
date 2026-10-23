@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.api.export import router as export_router
 from app.api.meetings import router as meetings_router
 from app.api.mom import router as mom_router
 from app.api.recordings import router as recordings_router
@@ -18,6 +19,7 @@ app.add_middleware(
 app.include_router(meetings_router)
 app.include_router(recordings_router)
 app.include_router(mom_router)
+app.include_router(export_router)
 
 
 @app.get("/health")

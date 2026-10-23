@@ -73,7 +73,7 @@ def _meeting(session: Session, meeting_id: uuid.UUID) -> Meeting:
     return meeting
 
 
-def _mom(session: Session, meeting_id: uuid.UUID, audience: Audience) -> Mom:
+def load_mom(session: Session, meeting_id: uuid.UUID, audience: Audience) -> Mom:
     _meeting(session, meeting_id)
     mom = (
         session.query(Mom)
@@ -93,7 +93,7 @@ def _check_audience(document: MomDocument, audience: Audience) -> None:
         )
 
 
-def _current(mom: Mom) -> MomVersion:
+def current_version(mom: Mom) -> MomVersion:
     return max(mom.versions, key=lambda version: version.version_number)
 
 
@@ -141,7 +141,7 @@ def store_version(
 def read_mom(
     meeting_id: uuid.UUID, audience: Audience, session: SessionDep
 ) -> MomRead:
-    return MomRead.of(_mom(session, meeting_id, audience))
+    return MomRead.of(load_mom(session, meeting_id, audience))
 
 
 @router.put("/{audience}/draft", response_model=MomRead)
@@ -152,14 +152,14 @@ def update_draft(
     session: SessionDep,
 ) -> MomRead:
     _check_audience(document, audience)
-    mom = _mom(session, meeting_id, audience)
+    mom = load_mom(session, meeting_id, audience)
     if mom.status != MomStatus.draft:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail="The MOM is approved and locked; reopen it to edit",
         )
 
-    current = _current(mom)
+    current = current_version(mom)
     current.content = document.model_dump(mode="json")
     # An edited draft is no longer exactly what the model wrote.
     current.ai_generated = False
@@ -175,13 +175,13 @@ def approve(
     session: SessionDep,
     payload: ApproveRequest | None = None,
 ) -> MomRead:
-    mom = _mom(session, meeting_id, audience)
+    mom = load_mom(session, meeting_id, audience)
     if mom.status != MomStatus.draft:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT, detail="The MOM is already approved"
         )
 
-    current = _current(mom)
+    current = current_version(mom)
     current.approved_at = datetime.now(UTC)
     current.approved_by = payload.approved_by if payload else None
     mom.status = MomStatus.approved
@@ -195,14 +195,14 @@ def reopen(
     meeting_id: uuid.UUID, audience: Audience, session: SessionDep
 ) -> MomRead:
     """Start a new draft from the approved version, leaving that version intact."""
-    mom = _mom(session, meeting_id, audience)
+    mom = load_mom(session, meeting_id, audience)
     if mom.status != MomStatus.approved:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail="Only an approved MOM can be reopened",
         )
 
-    current = _current(mom)
+    current = current_version(mom)
     mom.versions.append(
         MomVersion(
             version_number=current.version_number + 1,

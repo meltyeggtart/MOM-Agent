@@ -168,10 +168,25 @@ record the change in PROGRESS.md when it does.
   hiding Mandarin keeps all three language versions stored. The screen was driven in a
   browser through load, edit, save and approve.
 
-- [ ] P1-13  DOCX and PDF export
+- [x] P1-13  DOCX and PDF export
   PRD: §10   Files: backend/app/services/documents.py, backend/app/api/export.py, backend/tests/test_documents.py
   Done when: both formats open correctly.
   Export carries only the languages chosen at review.
+  Chosen 2026-10-20: python-docx for Word and reportlab for PDF. reportlab ships the
+  STSong-Light Chinese font, so nothing is downloaded and no font file enters the
+  repository or the deployment image.
+  Found 2026-10-20 by looking at the rendered pages: setting Latin text in STSong-Light
+  makes reportlab measure the line with the wrong metrics, so words overlapped
+  ("thebudget") and the "·" separator disappeared. Latin now uses Helvetica and only the
+  Chinese runs switch font. The bullet also came out as a control character, so the
+  bullet is set in the Latin font.
+  Verified 2026-10-20: 13 new tests, 98 in total. Both files were generated and read
+  back, every visible language appears, a hidden one does not, and an external MOM
+  carries no internal notes. The PDF pages were rendered to images and inspected, which
+  is what caught the overlap; text extraction alone did not.
+  Limit: the Word file was read back with python-docx, not opened in Word or Pages, so
+  its appearance is unconfirmed. Layout is deliberately plain: one page per language,
+  no logo, and no page numbers.
 
 - [ ] P1-14  Basic access control (account mode only)
   PRD: §11   Files: backend/app/api/auth.py, backend/app/core/security.py, backend/app/db/models.py
