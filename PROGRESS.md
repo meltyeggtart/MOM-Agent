@@ -1,15 +1,389 @@
 # Progress
 
 ## Current state
-Phase: P1. Last done: P1-06
-Next: P1-07
+Phase: P1. Last done: P1-14 (accounts and sessions)
+Next: P1-15 (Phase 1 acceptance run)
 Blockers: none
-Open decisions: the LLM for MOM generation is still TBD (PRD §19.1), due before P1-08.
-Storage is settled: AWS S3 in Singapore. Retention is settled: 90 days from upload,
-and account mode only. Speech is settled: Amazon Transcribe. Every other PRD §19 item
-is answered — see the log.
+Open decisions: the production LLM is a target, not a fact. Until 2026-10-20 the
+extractor runs through the Messages-compatible gateway present in this environment,
+which ignores the model name and serves deepseek-flash. Azure OpenAI replaces it before
+release, and the user asked to be reminded at that switch. Recording input is settled
+2026-10-20: stay on local Whisper for now; a managed API is one class and one line
+behind the seam when credentials exist. MOM languages are settled 2026-10-20: English,
+Mandarin and Indonesian, all three by default, the reviewer chooses at review, a removed
+language is hidden rather than deleted, and the MOM is authored once in the meeting's
+language with the other two translated from it. The source language is the one the
+transcript detected.
+Platform is settled: Azure, on infrastructure the user rents in Indonesia
+(`indonesiacentral`). This replaces the AWS plan, and no AWS code exists. Retention is
+settled: 90 days from upload, and account mode only. Region layout is settled 2026-10-20
+as option A: app, database and recordings in Indonesia Central, Azure Speech and Azure
+OpenAI in Singapore. Re-confirm that layout with the user before writing either cloud
+driver; they asked to be reminded. Every other PRD §19 item
+is answered — see the log. A Huawei SIS driver now exists as an alternative, but it has
+never run against the live service, so the provider is not settled by evidence yet.
+
+## Data residency — what is known (2026-10-20)
+
+One place to check before anyone writes a client promise about where meeting data goes.
+It exists because three things go wrong without it: a promise gets written from memory, an
+assumption hardens into a fact, and the detail is lost when the session ends.
+
+| Data or step | Where | Status |
+| --- | --- | --- |
+| App server, PostgreSQL | Azure, Indonesia Central | settled |
+| Recordings (Blob Storage) | Azure, Indonesia Central | assumed, not confirmed with Microsoft |
+| Batch transcription (Azure Speech) | Azure, Singapore | no Indonesian region offered |
+| Extraction, MOM, translation (Azure OpenAI) | Azure, Singapore | no Indonesian model table |
+
+Today, before any Azure AI credential exists, only the first row runs as described.
+Transcription is local Whisper on the Indonesian VM, so it stays in the country. MOM
+generation goes to the temporary gateway at ecoapi.ai, whose processing location is
+unknown; its website names Singapore and Indonesia, but that is marketing text, not a
+processing commitment.
+
+So "recordings are stored in Indonesia" is true. "Nothing leaves Indonesia" is not, and
+must not be said until that gateway is replaced and Speech and OpenAI are live. Full
+in-country processing would need self-hosted models, which breaks the managed-services
+rule, or an Indonesian provider, which nobody has researched.
+
+Live transcription and live translation change none of this. They decide whether
+processing happens during the meeting or after it, not where it happens.
 
 ## Log (newest first)
+
+### P1-14 — 2026-10-20 (done)
+Did: accounts and sessions. `app/core/security.py` hashes passwords with PBKDF2 and
+session tokens with SHA-256. `app/api/auth.py` serves register, login, logout and
+`/auth/me`; the HTTP-only `mom_session` cookie is the only credential and the digest,
+never the token, is stored. Every meeting and MOM route now needs a signed-in account
+and answers 404 for another account's meeting, so the existence of a meeting does not
+leak.
+
+Frontend: `api.ts` wraps `fetch` with `credentials: "include"`, `Login.tsx` is the
+sign-in and create-account screen, and `App.tsx` gates the three existing screens
+behind a session check on mount. `vite.config.ts` proxies `/api` to the backend, which
+keeps the cookie first-party in development.
+
+Found: port 8000 in this sandbox belongs to the Agent Canvas platform, so uvicorn
+never bound and the browser talked to the wrong server. The API now runs on 8010 and
+the proxy target follows `API_PROXY_TARGET`.
+
+Found while verifying: the platform's own service worker on `localhost:5173` answers
+`/api/auth/me`, so the app's session check never reached our backend there and the
+login form reappeared on reload. That is a collision in this sandbox only. Checked on
+`localhost:5174`, where the session restores from the cookie with no login form, and
+the sign-out and sign-in flow both work.
+
+Fixed while verifying: `tests/test_auth.py` used a fixed address and assumed empty
+tables, so the account left behind by the browser run made nine tests fail. Addresses
+are now unique per run and the session queries filter on the account under test.
+
+Verified: 118 tests pass, ruff clean, `npm run build` and `npm run lint` clean. Browser
+run: register, create a meeting, reload (still signed in), sign out, sign in.
+
+Notes: the test suite runs against the development database. Writes are rolled back,
+but rows from a dev run or a browser session stay visible, so a test must never assume
+an empty table.
+
+### P1-13 — 2026-10-20 (done)
+Did: `app/services/documents.py` turns a MOM into Word or PDF, using only the languages
+the reviewer kept. `app/api/export.py` serves them as
+`/meetings/{id}/moms/{audience}/export.docx` and `.../export.pdf`.
+
+Chosen: python-docx and reportlab, both pure Python. reportlab carries the STSong-Light
+Chinese font, so no font file is downloaded or committed, and the deployment image grows
+by two libraries instead of a 15 MB font.
+
+Found by rendering the pages to images: putting Latin text in the Chinese font makes
+reportlab measure the line with the wrong widths. Words overlapped ("thebudget") and the
+"·" separator vanished. Latin now uses Helvetica and only Chinese runs switch font.
+
+Found by reading the extracted text: the bullet came out as a control character, so the
+bullet is set in the Latin font.
+
+Verified: 13 new tests, 98 in total. Both formats are generated and read back, visible
+languages appear, a hidden one does not, and an external MOM carries no internal notes.
+The API returns the right type and filename, and an unknown meeting gives 404.
+
+Limit: the Word file was read back with python-docx, not opened in Word, so how it looks
+in a real word processor is unconfirmed. The PDF was rendered and inspected.
+
+### P1-12 — 2026-10-20 (done)
+Did: `app/api/mom.py`, the review API. Store the first draft, read it, edit it, approve
+it, and reopen it as a new version. `frontend/src/pages/Review.tsx` and
+`components/MomEditor.tsx` are the screen that drives those calls.
+
+Approval locks a version: an edit to an approved MOM returns 409 rather than silently
+changing history. Editing after approval goes through reopen, which writes version N+1
+as a draft and leaves the approved version untouched.
+
+Chosen: the visible-language set lives in the MOM document as `visible_languages`, not
+in a new table column. The existing Mom and MomVersion tables already hold versions and
+approval, so nothing needed migrating, and P1-13 reads the same field for export.
+
+Simplified: lists are edited as text, one entry per line, with "|" between fields (for
+example `Send the plan | Ana | 15 November 2026`). A row editor would be friendlier, but
+this keeps the first screen small and round-trips without loss.
+
+Verified: 85 tests pass, 11 of them new, ruff and eslint clean, frontend builds. Then
+against a running server and database: store 201, approve 200, edit after approve 409,
+reopen produces version 2 with version 1 still approved, and hiding Mandarin leaves all
+three versions stored. The screen itself was driven in a browser through load, edit, save
+and approve; the approved state greyed out Save and Approve and enabled Reopen.
+
+Limit: the screen takes a meeting reference typed by hand, because there is no list of
+meetings yet. Access control arrives in P1-14, and `approved_by` is still an optional
+string with nothing checking it.
+
+### P1-11 — 2026-10-20 (done)
+Did: `app/services/consistency.py`, a semantic comparison of the three versions. The
+generator already refuses a translation whose entry counts differ, which catches a dropped
+decision. It cannot catch a decision whose date changed, so this reads for meaning.
+
+Each mismatch names the field, describes both values, and lists the versions that disagree.
+A single language is rejected as a mismatch, because one version cannot disagree with
+itself.
+
+Verified: 74 tests pass, 7 of them new and offline, ruff clean. Two live cases. A
+consistent document produced nothing. Changing the Indonesian deadline to 15 September was
+flagged at action_items[0].deadline, naming both dates. The Chinese 2026年11月15日 was read
+as equal to 15 November 2026, so the date-format difference did not become a false finding.
+
+Limits: this compares what the versions say, not what the meeting actually contained. Three
+versions that are wrong in the same way pass, and the transcript is the only defence there.
+
+### Live features default off — 2026-10-20 (user decision, nothing built yet)
+A requirement, not work done. Live transcription (Phase 2) and live translation (Phase 3)
+do not exist yet, so there is no switch whose default could be changed. The behaviour is
+recorded in PLAN.md for the phase that builds them:
+
+- Both default to OFF at the start of every meeting.
+- Turning either one on first shows a consent dialog naming the cost and performance
+  effect. The switch only moves after the user agrees; cancelling leaves it off.
+- The two controls stay separate buttons. Live translation depends on live transcription,
+  but transcription must be usable on its own.
+
+Answered 2026-10-20: the consent is shown every time, with no "do not ask again" option.
+When live translation is turned on while live transcription is off, the offer turns both
+on together, explained in one dialog because it is one action.
+
+Wording deliberately left open 2026-10-20: the user chose to settle it when Phase 2 is
+built, not now. Do not block anything on it, and do not reuse a draft as if it were
+agreed. One correction is already known: "may increase cost or lower latency" reads
+inverted, because the cost rises and latency usually gets worse rather than better.
+
+### P1-10 — 2026-10-20 (done)
+Did: `app/services/sensitive.py`, an audit of the finished external minutes against the
+internal facts. It runs after the external MOM is written, deliberately: the writer's
+prompt is a request, and this is a second reader that can disagree with it. Each finding
+carries the language, the exact excerpt, a reason and a severity, so the reviewer sees
+where the problem is instead of a bare refusal.
+
+The check only accepts an external document; auditing an internal one would report a
+clean result while the file is full of notes, so that raises.
+
+Verified: 67 tests pass, 9 of them new and offline, ruff clean. Two live cases against the
+real model. The leaky document produced two findings, the English sentence and its
+Indonesian paraphrase ("marjin kami ... lebih tipis"), and did not flag the clean Chinese
+version. The clean document produced no findings.
+
+Limits worth knowing: this reader is another model, so it can be fooled, and two cases are
+not a benchmark. It catches disclosure, not the absence of judgement about what belongs in
+client minutes.
+
+### P1-09 — 2026-10-20 (done)
+Did: the external MOM, reusing the writer-then-translate machinery. `Audience` picks the
+prompt, the document records it, and an external document is rejected if the model puts
+anything in `internal_notes`, including when only a translation does.
+
+A gap this work exposed, and closed: extraction had no field for internal concerns, so the
+writer never saw them. "Off the record, our margin is thinner" reached neither MOM, and the
+first leak test therefore passed for the wrong reason. `Insights` gained `risks`; the
+extraction prompt fills it, the internal prompt carries it into `internal_notes`, and the
+external prompt forbids it.
+
+Verified: 58 tests pass, 7 of them new here, ruff clean. Live run on a transcript with a
+seeded off-the-record margin remark: the remark appeared in `insights.risks` and in the
+internal notes, and the strings margin, marjin, 利润 and 毛利 appeared nowhere in the
+external document in EN, ZH or ID. The external document carried all three languages with
+empty notes, and dates read natively (11月15日, 15 November, 星期五, Jumat).
+
+Still P1-10's job: this proves the prompt and the structure, not that no sensitive content
+can slip through in other words. The word-list scan above is a spot check, not a check.
+
+### P1-08 — 2026-10-20 (done)
+Did: the internal MOM, authored once in the meeting's language and translated into the
+other two. `app/schemas/mom.py` holds one document with exactly one version per language,
+so hiding a language at review stays a view of the document rather than a deletion.
+`app/services/mom.py` writes the source version from the extracted facts, then translates
+it, and refuses a translation whose entry counts differ from the source.
+
+Also extracted `app/services/llm.py`, the Messages client both generators share, so the
+transport and the JSON handling are written once instead of twice.
+
+Verified: 51 tests pass, 9 of them new and offline, and ruff is clean. A live run on an
+English transcript produced three versions with identical counts: 2 topics, 2 decisions,
+2 action items, 1 open question, 2 internal notes. Names were preserved and the
+unassigned action stayed null in all three languages.
+
+Defect the live run found and the fix: the first translation prompt said to keep dates
+"exactly as written", and the Chinese version came back with "October 15" and "Friday" in
+English inside otherwise Chinese sentences. The rule now requires dates and weekdays to
+read naturally in the target language. The re-run produced 10月15日 and 星期五, and
+15 Oktober and Jumat.
+
+### P1-07 — 2026-10-20 (done)
+Did: extraction of topics, decisions, action items, owners, deadlines and open questions
+from a transcript, in `app/services/intelligence.py`, with the prompt in
+`app/prompts/extraction.md` and the shape in `app/schemas/insights.py`. The LLM sits
+behind `InsightExtractor`, one method, so changing provider is a one-class change.
+
+Temporary provider, and what it actually is: the user authorised the Messages-compatible
+endpoint already present in this environment. Probing it showed that it ignores the
+requested model name and answers as `deepseek-flash` for every name tried, including
+nonsense ones. So the model under test is DeepSeek Flash, not Claude, and not what
+production will use. Recorded because the user believed the key was an Anthropic one.
+Azure OpenAI remains the target and replaces it before release; the user asked to be
+reminded at that point.
+
+Verified: 42 tests pass, 11 of them new and offline by injecting the sender, and ruff is
+clean. A live call on an English transcript returned two topics, two decisions, two action
+items and one open question, leaving the unassigned contract review as owner null instead
+of inventing one. A live call on an Indonesian transcript answered in Indonesian, kept
+"hari Jumat" as spoken, and attributed the action to Budi.
+
+Not covered: a mixed English-Mandarin transcript, and any comparison against Azure
+OpenAI. Both wait for the production model.
+
+### Region layout ruling — 2026-10-20 (user decided)
+Option A, hybrid. The app, the PostgreSQL database and the recordings live in Indonesia
+Central. Azure Speech and Azure OpenAI, which Microsoft does not offer in Indonesia, run
+in Singapore (Southeast Asia). Audio and transcripts leave the country only for the
+processing call; stored data stays in Indonesia.
+
+The user asked to be reminded at build time: before writing either cloud driver, confirm
+the layout again. Recorded here so a later session does not build it on autopilot.
+
+Not chosen: all-Singapore (B), simpler but moves stored data abroad; self-hosted AI on
+the VM (C), which breaks the managed-services rule; an in-country AI provider (D),
+which has not been researched.
+
+### Azure region check — 2026-10-20 (research, not a decision)
+The user rents Azure infrastructure in Indonesia, so the platform moves from AWS to
+Azure. Before choosing a layout I checked Microsoft's own documentation.
+
+Verified:
+- `indonesiacentral` is a real region: Indonesia Central, Jakarta, three availability
+  zones (`learn.microsoft.com/azure/reliability/regions-list`).
+- PostgreSQL Flexible Server runs there, engines v3/v4/v5
+  (`learn.microsoft.com/azure/postgresql/flexible-server/overview`).
+- Azure Speech supports `id-ID` for speech to text
+  (`learn.microsoft.com/azure/ai-services/speech-service/language-support`).
+- Azure Speech's supported-region page lists `southeastasia` and 18 other region ids,
+  and does not contain "indonesiacentral" anywhere
+  (`learn.microsoft.com/azure/ai-services/speech-service/regions`).
+- No Azure OpenAI / Foundry model page mentioned Indonesia at all; for this part of the
+  world the model region tables stop at Southeast Asia
+  (`learn.microsoft.com/azure/ai-foundry/openai/concepts/models`).
+
+Not verified:
+- Blob Storage in Indonesia Central. Storage exists in every generally available
+  region, but no documentation page enumerated it for this one.
+- Whether the user's subscription has Indonesia Central enabled, and whether Azure
+  OpenAI can be deployed in Indonesia despite the documentation.
+
+Consequence: "everything in Indonesia" is not possible with Azure's managed AI. The
+layout is a choice between hybrid (app, database and recordings in Indonesia, Speech and
+OpenAI in Singapore) and all-Singapore. The hybrid keeps stored data in the country and
+sends only a copy abroad for processing.
+
+Deferred on purpose: the layout does not block P1-07, which needs only an LLM endpoint.
+Nothing is hard to change yet, because no cloud driver is written and no data is stored.
+Two deadlines do apply. Settle the storage region before the cloud storage driver is
+written (still pending from P1-04). Settle the residency commitment before any client is
+told where their meetings are kept, because that is a promise, not a setting.
+
+### MOM language ruling, follow-up — 2026-10-20 (user decided)
+Two questions left open by the previous ruling are answered.
+
+1. A language the reviewer removes is hidden, not deleted. It stays in the version and
+   can be brought back; the approved document and the export leave it out. The choice
+   protects against a mistaken removal, which matters because MOMs get revised.
+2. The MOM is authored once, in the meeting's language. The other two languages are
+   translations of that one text, not three independent drafts. The three sections
+   therefore cannot disagree about a decision, a date or an owner: they are one text
+   and two translations of it.
+
+Consequence: the reviewer's language choice is a view of a version, not an edit to it.
+All three languages stay in storage, so the choice needs no history of its own.
+
+Source language, settled in the same session: the language the transcript detected.
+A meeting that declared en+zh but was mostly spoken in Mandarin is therefore authored
+in Mandarin, then translated. No new field is needed, because the transcript already
+stores the detected language.
+
+### MOM language ruling — 2026-10-20 (user decided)
+Each MOM carries three languages in one document: English, Mandarin and Indonesian.
+All three are produced by default. At review, the user chooses which languages to keep.
+This replaces the PRD rule of English plus Mandarin only (PRD §8.1, §8.4). Recorded as
+a deliberate deviation, the same way guest mode and the retention rule were.
+
+Carried into PLAN.md:
+- P1-08 and P1-09 produce three languages, not two.
+- P1-11 compares three texts instead of one pair.
+- P1-12 gains the language choice; P1-13 exports only the chosen languages.
+
+Consequence worth naming: translation becomes part of MOM generation. A meeting that
+never spoke Mandarin still needs a Mandarin version, so the quality of that section
+rests on the translation step rather than on the transcript. That cost grows with the
+number of languages and will need a model good at translation, not only at writing.
+
+Still open, due before P1-12: whether a language removed at review is deleted or only
+hidden from the approved document and the export, and whether the choice is per
+version or per MOM.
+
+### P1-06c — 2026-10-20 (done)
+Did: Indonesian is now a meeting language. The API accepts "id", the new-meeting form
+offers it, and the worker passes "id" as the transcription hint when a meeting declares
+only Indonesian. A meeting that declares Indonesian together with another language gets
+no hint, so the audio decides.
+Files: backend/app/schemas/meeting.py, backend/tests/test_meetings_api.py,
+backend/tests/test_speech.py, frontend/src/pages/NewMeeting.tsx,
+frontend/src/i18n/messages.ts, PLAN.md, PROGRESS.md, docs/PLAN_NON_TECHNICAL.md
+Verified: 31 tests pass (3 new) and ruff is clean. eslint and the vite build both pass.
+The API test creates a real meeting with languages ["id"] against the development
+database, and the two hint tests call the worker's own helper, so neither uses a stub.
+Missing: there is no Indonesian audio fixture, because no text-to-speech tool exists in
+this environment. Whisper accepts the "id" code, but its Indonesian output is unproven
+end to end. Only a real recording can judge accuracy, exactly as with the earlier
+fixtures.
+Notes: no database change. The languages column stores text, so a new code needs no
+migration. Scope is the spoken language and its transcript only; whether the MOM gains
+Indonesian is still open.
+Known gap, older than this step: SPEECH_PROVIDER=huawei always sends the single
+configured model property (default chinese_16k_conversation), whatever the meeting
+declares. An English meeting on Huawei is therefore already transcribed with a Chinese
+model, and Indonesian inherits that. Worth fixing before Huawei is used for real.
+Decision in the same session: the user chose to stay on local Whisper for now, with a
+provider swap later. That swap touches speech.py plus one settings block.
+
+### P1-06b — 2026-10-19 (scaffold, never run against the live service)
+Did: added a Huawei Cloud speech driver behind the same seam. `SPEECH_PROVIDER=huawei`
+selects SIS batch recognition; the default stays `whisper`, so behavior is unchanged
+until the variable is set. The driver uploads the audio to OBS, submits a transcriber
+job, polls it, maps segments, and deletes the temporary object. SIS accepts files up to
+5 hours and 300 MB and keeps results for 72 hours, which covers the 75-minute recording.
+Files: backend/app/services/speech.py, backend/app/core/settings.py,
+backend/tests/test_huawei.py, backend/.env.example, backend/pyproject.toml
+Verified: 28 tests pass (6 new) and ruff is clean. The new tests build a real SIS job
+body and parse a real response model, so the request and response mapping is covered.
+Missing credentials fail before anything is uploaded.
+Notes: no Huawei credentials exist here, so the driver has never called the live API.
+`auto_language_detect` exists in the job body, but whether SIS switches language inside
+a single file is unproven; it may only choose one language per job. The Jakarta region
+could not be confirmed from public pages; only Singapore appeared. The model default is
+`chinese_16k_conversation`; `english_16k_common` is the English alternative.
 
 ### P1-06 — 2026-10-19 (done)
 Did: Mandarin and mixed-language transcription. The worker no longer assumes English.

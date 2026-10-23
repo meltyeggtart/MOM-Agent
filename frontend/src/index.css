@@ -8,6 +8,18 @@ body {
   padding: 2rem;
 }
 
+.account {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  color: #444;
+}
+
+.login {
+  max-width: 32rem;
+}
+
 form > label {
   display: grid;
   gap: 0.25rem;
@@ -28,4 +40,16 @@ fieldset {
 
 fieldset label {
   margin-right: 1rem;
+}
+
+.mom-editor > label {
+  display: grid;
+  gap: 0.25rem;
+  max-width: 40rem;
+  margin-bottom: 0.75rem;
+}
+
+.mom-editor textarea {
+  min-height: 4rem;
+  font: inherit;
 }

@@ -93,35 +93,102 @@ record the change in PROGRESS.md when it does.
   PRD: §7.5   Files: backend/app/services/speech.py, backend/tests/test_speech.py
   Done when: mixed EN/ZH sample transcribed.
 
-- [ ] P1-07  Meeting intelligence extraction: topics, decisions, actions, owners, deadlines
-  PRD: §7.6, §7.7   Files: backend/app/services/intelligence.py, backend/app/schemas/insights.py, backend/tests/test_intelligence.py
+- [x] P1-06b  Add Huawei Cloud SIS speech driver behind the same seam
+  PRD: §7.5   Files: backend/app/services/speech.py,
+  backend/app/core/settings.py, backend/tests/test_huawei.py,
+  backend/.env.example, backend/pyproject.toml
+  Done when: the driver builds a valid SIS job body and maps a real response.
+  Never called against the live service; no credentials exist here. See PROGRESS.md.
+
+- [x] P1-06c  Add Indonesian as a meeting language
+  Source: added 2026-10-20 at the user's request. "Additional languages" is a Phase 4
+  item in this plan, so this deliberately pulls one language into Phase 1.
+  Files: backend/app/schemas/meeting.py, backend/tests/test_meetings_api.py,
+  backend/tests/test_speech.py, frontend/src/pages/NewMeeting.tsx,
+  frontend/src/i18n/messages.ts
+  Done when: a meeting declaring "id" is accepted, and the worker passes "id" as the
+  transcription hint.
+  Scope: the spoken meeting language and its transcript only. Whether Indonesian also
+  enters the MOM is open and due before P1-08.
+
+- [x] P1-07  Meeting intelligence extraction: topics, decisions, actions, owners, deadlines
+  PRD: §7.6, §7.7   Files: backend/app/services/intelligence.py, backend/app/schemas/insights.py, backend/app/prompts/extraction.md, backend/tests/test_intelligence.py
   Done when: structured JSON output on a sample.
+  Verified 2026-10-20 on live calls in English and Indonesian. Unnamed owners and
+  deadlines came back null rather than invented. The model behind the temporary gateway
+  is deepseek-flash; Azure OpenAI replaces it before release.
 
-- [ ] P1-08  Internal MOM generator (bilingual) with audience-specific prompt
-  PRD: §8.2, §8.4   Files: backend/app/services/mom.py, backend/app/prompts/internal_mom.md, backend/app/schemas/mom.py
-  Done when: Internal MOM draft produced.
+- [x] P1-08  Internal MOM generator (EN, ZH, ID) with audience-specific prompt
+  PRD: §8.2, §8.4   Files: backend/app/services/mom.py, backend/app/prompts/internal_mom.md, backend/app/prompts/mom_translation.md, backend/app/schemas/mom.py, backend/tests/test_mom.py
+  Done when: an Internal MOM draft carries all three languages in one document.
+  Language rule settled 2026-10-20: three languages by default, not the PRD's two.
+  Authored once in the meeting's language, then translated into the other two.
+  The source is the transcript's detected language (settled 2026-10-20).
+  Verified 2026-10-20 on a live run: three versions with identical entry counts, dates
+  rendered natively (10月15日, 15 Oktober), names preserved.
 
-- [ ] P1-09  External MOM generator (bilingual) with audience-specific prompt
+- [x] P1-09  External MOM generator (EN, ZH, ID) with audience-specific prompt
   PRD: §8.3, §8.5   Files: backend/app/prompts/external_mom.md, backend/app/services/mom.py, backend/tests/test_mom.py
-  Done when: External MOM draft produced.
+  Done when: an External MOM draft carries all three languages in one document.
+  Same rule as P1-08: authored once in the meeting's language, then translated.
+  Verified 2026-10-20: three versions, internal_notes empty in all three, and a seeded
+  off-the-record remark about margin reached the internal MOM while appearing nowhere in
+  the external MOM in any of EN, ZH or ID.
 
-- [ ] P1-10  Sensitive-content check on External MOM
+- [x] P1-10  Sensitive-content check on External MOM
   PRD: §8.5, §11.3   Files: backend/app/services/sensitive.py, backend/app/prompts/sensitive_check.md, backend/tests/test_sensitive.py
   Done when: seeded internal-only text is flagged.
+  Runs after the external MOM is written, on purpose: the writer's prompt is a request,
+  this is a second reader that can disagree with it.
+  Verified 2026-10-20 with two live cases. A document leaking the margin remark was
+  flagged twice, once for the English sentence and once for its Indonesian paraphrase,
+  while the clean Chinese version was left alone. A clean document produced no findings.
 
-- [ ] P1-11  Bilingual consistency check
+- [x] P1-11  Cross-language consistency check
   PRD: §8.6   Files: backend/app/services/consistency.py, backend/app/prompts/consistency_check.md, backend/tests/test_consistency.py
-  Done when: mismatch between EN and ZH is flagged.
+  Done when: a mismatch between EN, ZH and ID is flagged.
+  Widened 2026-10-20 from the PRD's EN/ZH pair to three languages.
+  Verified 2026-10-20 with two live cases. A consistent document produced no mismatch.
+  The same document with the Indonesian deadline changed to 15 September was flagged at
+  action_items[0].deadline, naming both dates. The Chinese 2026年11月15日 was correctly
+  read as equal to 15 November 2026 rather than as a difference.
 
-- [ ] P1-12  Review screen: edit, approve, version history
+- [x] P1-12  Review screen: edit, choose languages, approve, version history
   PRD: §10   Files: backend/app/api/mom.py, frontend/src/pages/Review.tsx, frontend/src/components/MomEditor.tsx
   Done when: approved MOM is locked and versioned.
+  Added 2026-10-20: the screen also lets the reviewer choose which MOM languages to
+  keep. A removed language is hidden, not deleted, so it stays in the version and can
+  be restored.
+  Chosen 2026-10-20: the visible set lives inside the MOM document, not in a new table
+  column. Nothing else needs it before P1-13, which reads it for export, and the
+  existing Mom and MomVersion tables already carry versions and approval, so no
+  migration was needed.
+  Verified 2026-10-20 against a running server: approving locks the version (a later
+  edit returns 409), reopening writes version 2 and leaves version 1 approved, and
+  hiding Mandarin keeps all three language versions stored. The screen was driven in a
+  browser through load, edit, save and approve.
 
-- [ ] P1-13  DOCX and PDF export
+- [x] P1-13  DOCX and PDF export
   PRD: §10   Files: backend/app/services/documents.py, backend/app/api/export.py, backend/tests/test_documents.py
   Done when: both formats open correctly.
+  Export carries only the languages chosen at review.
+  Chosen 2026-10-20: python-docx for Word and reportlab for PDF. reportlab ships the
+  STSong-Light Chinese font, so nothing is downloaded and no font file enters the
+  repository or the deployment image.
+  Found 2026-10-20 by looking at the rendered pages: setting Latin text in STSong-Light
+  makes reportlab measure the line with the wrong metrics, so words overlapped
+  ("thebudget") and the "·" separator disappeared. Latin now uses Helvetica and only the
+  Chinese runs switch font. The bullet also came out as a control character, so the
+  bullet is set in the Latin font.
+  Verified 2026-10-20: 13 new tests, 98 in total. Both files were generated and read
+  back, every visible language appears, a hidden one does not, and an external MOM
+  carries no internal notes. The PDF pages were rendered to images and inspected, which
+  is what caught the overlap; text extraction alone did not.
+  Limit: the Word file was read back with python-docx, not opened in Word or Pages, so
+  its appearance is unconfirmed. Layout is deliberately plain: one page per language,
+  no logo, and no page numbers.
 
-- [ ] P1-14  Basic access control (account mode only)
+- [x] P1-14  Basic access control (account mode only)
   PRD: §11   Files: backend/app/api/auth.py, backend/app/core/security.py, backend/app/db/models.py
   Done when: unauthorized access is blocked.
   Guest mode dropped 2026-10-15, so the guest-deletion half is gone. Deliberate
@@ -137,12 +204,23 @@ Live Transcription On/Off control, streaming EN/Mandarin text, timestamps and
 speaker labels when available, service status, recording continues when the
 feature is off or unavailable.
 Not yet broken into atomic steps.
+Settled 2026-10-20 (user): the control defaults to OFF at the start of every meeting.
+Switching it ON first shows a consent dialog saying the feature adds processing cost and
+may affect performance, and the switch only moves after the user agrees. Cancelling leaves
+it OFF. The consent appears every time, with no "do not ask again" option. This control is
+a separate button from the live translation control; never one combined switch.
+The dialog wording is not settled. It is left open on purpose until this step is built;
+do not treat any earlier draft as agreed.
 
 ## Phase 3 — Optional Live Translation (PRD §13)
 Live Translation On/Off control, independent of but dependent on transcription,
 original and translated text, latency and code-switching validation, prospective
 resume with no backfill.
 Not yet broken into atomic steps.
+Settled 2026-10-20 (user): same rules as Phase 2. Defaults to OFF, has its own separate
+control, and shows its own consent dialog before it turns on. When it is turned on while
+live transcription is off, the offer turns both on together and explains both in one
+dialog, because it is one action by the user.
 
 ## Phase 4 — Extended Meeting Intelligence (PRD §13)
 Terminology and knowledge base/RAG, confirmed speaker-name mapping, meeting

@@ -1,11 +1,9 @@
 import { useState, type FormEvent } from 'react'
 
+import { apiFetch } from '../api'
 import { messages } from '../i18n/messages'
 
 const text = messages.newMeeting
-
-const API_BASE_URL: string =
-  import.meta.env.VITE_API_BASE_URL ?? 'http://127.0.0.1:8000'
 
 type CreatedMeeting = {
   id: string
@@ -63,7 +61,7 @@ function NewMeeting() {
 
     setSaving(true)
     try {
-      const response = await fetch(`${API_BASE_URL}/meetings`, {
+      const response = await apiFetch('/meetings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -136,6 +134,14 @@ function NewMeeting() {
               onChange={() => toggleLanguage('zh')}
             />
             {text.languageMandarin}
+          </label>
+          <label>
+            <input
+              type="checkbox"
+              checked={languages.includes('id')}
+              onChange={() => toggleLanguage('id')}
+            />
+            {text.languageIndonesian}
           </label>
         </fieldset>
 

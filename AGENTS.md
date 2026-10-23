@@ -1,7 +1,7 @@
 # AI Meeting Agent — Project Rules
 
 ## What this is
-Standalone cloud-hosted bilingual (EN/ZH) in-person meeting app that produces
+Standalone cloud-hosted multilingual (EN/ZH/ID) in-person meeting app that produces
 Internal MOM and External MOM. Full spec: `PRD_AI_MEETING_AGENT_v2.1_FINAL.docx`
 (repo root). The build workflow is defined in that document, Section 22.
 Separate from every other project. Never reuse their code, config, or credentials.
@@ -11,8 +11,11 @@ The user does not have an IT background. This section covers anything written fo
 user. PLAN.md, PROGRESS.md, and the rest of this file are read by the agent, so they
 stay precise and technical.
 
-- Write to the user in Indonesian, with short sentences and everyday words. Code,
-  comments, commit messages, and file contents stay in English.
+- Write to the user in English as of 2026-10-20, because the user forwards these
+  messages to their engineer. Keep sentences short and still explain a technical term
+  the first time it appears. Before that date the rule was Indonesian.
+  docs/PLAN_NON_TECHNICAL.md stays in Indonesian, because it is the user's own view.
+  Code, comments, commit messages, and file contents stay in English.
 - Explain a technical term once, in a few words, the first time it appears. Do not
   re-explain it later.
 - Report a problem as: what went wrong, what I did about it, what it means for the
@@ -58,15 +61,35 @@ Why this split: document generation and the speech and LLM SDKs are strongest in
 Python, while the meeting screen, live transcript, and review UI need a real
 frontend (PRD §12, §13).
 
-Settled 2026-10-19: audio storage is AWS S3 in the Singapore region, recordings are
-kept for 90 days from upload with the owner able to delete sooner, and speech is Amazon
-Transcribe in production. Neither AWS driver is written yet, because no credentials
+Settled 2026-10-20: the cloud platform is Azure, because the user rents Azure
+infrastructure in Indonesia (`indonesiacentral`). This replaces the AWS plan of
+2026-10-19; no AWS code was ever written, so the switch cost nothing. Retention stays
+90 days from upload, with the owner able to delete sooner. Region layout is still open.
+Verified 2026-10-20: Indonesia Central exists (Jakarta, three availability zones) and
+PostgreSQL Flexible Server runs there, but Azure Speech's supported-region list omits it
+and no Azure OpenAI model table mentions Indonesia. Speech and OpenAI therefore appear
+to need Southeast Asia (Singapore) at the nearest. Blob Storage in Indonesia Central is
+assumed, not verified.
+Layout settled 2026-10-20, user chose option A: the app, the database and the recordings
+stay in Indonesia Central, while Azure Speech and Azure OpenAI run in Singapore. The
+user asked to be reminded at build time, so confirm this layout again before writing
+either cloud driver. Neither cloud driver is verified yet, because no credentials
 exist in the working environment. Until then `app/services/storage.py` writes to a
 local directory and `app/services/speech.py` runs a local Whisper model. Both are
 single-method seams, so swapping a driver touches one file. The local model is `small`,
 the first size that handles Mandarin and English code-switching acceptably; `tiny`
 garbled Mandarin badly. Still TBD: the LLM for MOM generation, due before P1-08. The
 queue and the remaining products follow those choices.
+
+Residency facts, including what is verified and what is only assumed, are collected in
+`PROGRESS.md` under "Data residency — what is known". Read that before writing any
+client-facing sentence about where meeting data is stored or processed.
+
+On 2026-10-19 the speech seam also gained a Huawei Cloud SIS driver, selected with
+`SPEECH_PROVIDER=huawei`, because the customer asked whether the whole stack could run
+on Huawei. It has never called the live service: there are no Huawei credentials here.
+Its job body and response mapping are tested, but whether SIS switches language inside
+one file is unproven. Test it with a real recording before treating Huawei as settled.
 
 ## Folder structure
 Two apps in one repository, deployed separately. Created in P0-04.
@@ -104,6 +127,16 @@ Frontend, run from `frontend/`:
 - build:   `npm run build`
 - test:    not wired yet. Vitest arrives with the first frontend test step.
 
+Development wiring (since P1-14):
+- The frontend calls `/api/...` on its own origin and `vite.config.ts` proxies that to
+  the backend, so the session cookie stays first-party.
+- Port 8000 belongs to the Agent Canvas platform here, not to us. Run the API on 8010:
+  `uvicorn app.main:app --reload --port 8010`, which is the proxy's default target
+  (`API_PROXY_TARGET` overrides it).
+- The platform's service worker on `localhost:5173` also answers `/api/auth/me`, so a
+  browser session there loses the sign-in on reload. Verify auth flows on a different
+  port (for example `npx vite --port 5174`).
+
 ## Conventions (naming, error handling, logging, i18n EN/ZH)
 - Naming: snake_case in Python, camelCase in TypeScript, kebab-case for file names.
 - Errors: typed exceptions in services, one JSON error shape from the API, and no
@@ -111,10 +144,14 @@ Frontend, run from `frontend/`:
 - Logging: structured logs at the API boundary. Never log raw audio, transcript
   text, credentials, or MOM content (PRD §11.2).
 - i18n: the interface ships in English only for the first release. Screen text lives
-  in one string file, so adding Mandarin later means translating that file rather
-  than rewriting screens. The PRD requires bilingual meetings and MOMs, not a
-  bilingual interface; each MOM carries both languages in one document
-  (PRD §8.1, §8.4).
+  in one string file, so adding another interface language later means translating
+  that file rather than rewriting screens. The PRD requires bilingual meetings and
+  MOMs, not a bilingual interface. Ruling 2026-10-20: each MOM carries English,
+  Mandarin and Indonesian in one document by default, and the reviewer chooses which
+  languages to keep. A removed language is hidden, not deleted. The MOM is authored
+  once in the meeting's language and the other two are translations of that text.
+  The source language is the one the transcript detected.
+  Deliberate deviation from PRD §8.1 and §8.4; see PROGRESS.md.
 - Prompts: audience-specific MOM prompts live in the backend, versioned with the code.
 
 ## Product guardrails

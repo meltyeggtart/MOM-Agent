@@ -1,0 +1,213 @@
+"""Review endpoints for a MOM: store, edit, approve, and reopen as a new version.
+
+Approval locks the current version. Editing an approved MOM is not allowed; the
+caller reopens it, which writes a new draft version and leaves the approved one
+untouched, so the version trail stays honest.
+"""
+
+import uuid
+from datetime import UTC, datetime
+from typing import Annotated
+
+from fastapi import APIRouter, Depends, HTTPException, status
+from pydantic import BaseModel
+from sqlalchemy.orm import Session
+
+from app.api.auth import CurrentUser
+from app.api.meetings import load_meeting
+from app.db.models import Mom, MomStatus, MomVersion
+from app.db.session import get_session
+from app.schemas.mom import Audience, MomDocument
+
+router = APIRouter(prefix="/meetings/{meeting_id}/moms", tags=["moms"])
+
+
+class MomVersionRead(BaseModel):
+    version_number: int
+    content: MomDocument
+    ai_generated: bool
+    approved_at: datetime | None
+    approved_by: str | None
+    created_at: datetime
+
+    @classmethod
+    def of(cls, version: MomVersion) -> "MomVersionRead":
+        return cls(
+            version_number=version.version_number,
+            content=MomDocument.model_validate(version.content),
+            ai_generated=version.ai_generated,
+            approved_at=version.approved_at,
+            approved_by=version.approved_by,
+            created_at=version.created_at,
+        )
+
+
+class MomRead(BaseModel):
+    audience: Audience
+    status: str
+    versions: list[MomVersionRead]
+
+    @classmethod
+    def of(cls, mom: Mom) -> "MomRead":
+        return cls(
+            audience=Audience(mom.audience),
+            status=mom.status,
+            versions=[
+                MomVersionRead.of(version)
+                for version in sorted(mom.versions, key=lambda v: v.version_number)
+            ],
+        )
+
+
+SessionDep = Annotated[Session, Depends(get_session)]
+
+
+def load_mom(
+    session: Session,
+    meeting_id: uuid.UUID,
+    audience: Audience,
+    owner_id: uuid.UUID,
+) -> Mom:
+    load_meeting(session, meeting_id, owner_id)
+    mom = (
+        session.query(Mom)
+        .filter(Mom.meeting_id == meeting_id, Mom.audience == audience.value)
+        .one_or_none()
+    )
+    if mom is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="MOM not found")
+    return mom
+
+
+def _check_audience(document: MomDocument, audience: Audience) -> None:
+    if document.audience is not audience:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Document audience {document.audience} does not match {audience}",
+        )
+
+
+def current_version(mom: Mom) -> MomVersion:
+    return max(mom.versions, key=lambda version: version.version_number)
+
+
+@router.post(
+    "/{audience}/versions",
+    response_model=MomRead,
+    status_code=status.HTTP_201_CREATED,
+)
+def store_version(
+    meeting_id: uuid.UUID,
+    audience: Audience,
+    document: MomDocument,
+    session: SessionDep,
+    user: CurrentUser,
+) -> MomRead:
+    """Store a freshly generated MOM as the first draft."""
+    load_meeting(session, meeting_id, user.id)
+    _check_audience(document, audience)
+
+    existing = (
+        session.query(Mom)
+        .filter(Mom.meeting_id == meeting_id, Mom.audience == audience.value)
+        .one_or_none()
+    )
+    if existing is not None:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="This meeting already has a MOM for that audience",
+        )
+
+    mom = Mom(meeting_id=meeting_id, audience=audience.value, status=MomStatus.draft)
+    mom.versions.append(
+        MomVersion(
+            version_number=1,
+            content=document.model_dump(mode="json"),
+            ai_generated=True,
+        )
+    )
+    session.add(mom)
+    session.commit()
+    session.refresh(mom)
+    return MomRead.of(mom)
+
+
+@router.get("/{audience}", response_model=MomRead)
+def read_mom(
+    meeting_id: uuid.UUID, audience: Audience, session: SessionDep, user: CurrentUser
+) -> MomRead:
+    return MomRead.of(load_mom(session, meeting_id, audience, user.id))
+
+
+@router.put("/{audience}/draft", response_model=MomRead)
+def update_draft(
+    meeting_id: uuid.UUID,
+    audience: Audience,
+    document: MomDocument,
+    session: SessionDep,
+    user: CurrentUser,
+) -> MomRead:
+    _check_audience(document, audience)
+    mom = load_mom(session, meeting_id, audience, user.id)
+    if mom.status != MomStatus.draft:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="The MOM is approved and locked; reopen it to edit",
+        )
+
+    current = current_version(mom)
+    current.content = document.model_dump(mode="json")
+    # An edited draft is no longer exactly what the model wrote.
+    current.ai_generated = False
+    session.commit()
+    session.refresh(mom)
+    return MomRead.of(mom)
+
+
+@router.post("/{audience}/approve", response_model=MomRead)
+def approve(
+    meeting_id: uuid.UUID,
+    audience: Audience,
+    session: SessionDep,
+    user: CurrentUser,
+) -> MomRead:
+    mom = load_mom(session, meeting_id, audience, user.id)
+    if mom.status != MomStatus.draft:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT, detail="The MOM is already approved"
+        )
+
+    current = current_version(mom)
+    current.approved_at = datetime.now(UTC)
+    # Taken from the session, not the request, so the trail cannot name someone else.
+    current.approved_by = user.email
+    mom.status = MomStatus.approved
+    session.commit()
+    session.refresh(mom)
+    return MomRead.of(mom)
+
+
+@router.post("/{audience}/reopen", response_model=MomRead)
+def reopen(
+    meeting_id: uuid.UUID, audience: Audience, session: SessionDep, user: CurrentUser
+) -> MomRead:
+    """Start a new draft from the approved version, leaving that version intact."""
+    mom = load_mom(session, meeting_id, audience, user.id)
+    if mom.status != MomStatus.approved:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Only an approved MOM can be reopened",
+        )
+
+    current = current_version(mom)
+    mom.versions.append(
+        MomVersion(
+            version_number=current.version_number + 1,
+            content=dict(current.content),
+            ai_generated=False,
+        )
+    )
+    mom.status = MomStatus.draft
+    session.commit()
+    session.refresh(mom)
+    return MomRead.of(mom)

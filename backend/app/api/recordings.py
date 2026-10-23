@@ -7,6 +7,8 @@ from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, s
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 
+from app.api.auth import CurrentUser
+from app.api.meetings import load_meeting
 from app.core.settings import settings
 from app.db.models import Meeting, Recording
 from app.db.session import get_session
@@ -54,12 +56,10 @@ def upload_recording(
     file: Annotated[UploadFile, File()],
     session: SessionDep,
     storage: StorageDep,
+    user: CurrentUser,
     duration_ms: Annotated[int | None, Form()] = None,
 ) -> Recording:
-    if session.get(Meeting, meeting_id) is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Meeting not found"
-        )
+    load_meeting(session, meeting_id, user.id)
 
     content_type = (file.content_type or "").split(";")[0].strip().lower()
     suffix = SUFFIX_BY_CONTENT_TYPE.get(content_type)
@@ -94,9 +94,17 @@ def upload_recording(
 
 @router.get("/recordings/{recording_id}/audio")
 def download_recording(
-    recording_id: uuid.UUID, session: SessionDep, storage: StorageDep
+    recording_id: uuid.UUID,
+    session: SessionDep,
+    storage: StorageDep,
+    user: CurrentUser,
 ) -> FileResponse:
-    recording = session.get(Recording, recording_id)
+    recording = (
+        session.query(Recording)
+        .join(Meeting, Meeting.id == Recording.meeting_id)
+        .filter(Recording.id == recording_id, Meeting.owner_id == user.id)
+        .one_or_none()
+    )
     if recording is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Recording not found"
