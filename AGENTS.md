@@ -146,6 +146,12 @@ Development wiring (since P1-14):
   that calls the model answers 503 "must be set", which looks like an outage but is the
   process missing its credentials.
 
+Git:
+- `origin` holds no credential, so a push stops at "Username for 'https://github.com'"
+  and waits. Put the token in the remote once per session:
+  `git remote set-url origin "https://x-access-token:${GITHUB_TOKEN}@github.com/meltyeggtart/MOM-Agent.git"`,
+  and use `GIT_TERMINAL_PROMPT=0` so a missing token fails instead of hanging.
+
 ## Conventions (naming, error handling, logging, i18n EN/ZH)
 - Naming: snake_case in Python, camelCase in TypeScript, kebab-case for file names.
 - Errors: typed exceptions in services, one JSON error shape from the API, and no
