@@ -4,7 +4,7 @@ import { apiFetch, signedInAccount, type Account } from './api'
 import { messages } from './i18n/messages'
 import Login from './pages/Login'
 import Meeting from './pages/Meeting'
-import NewMeeting from './pages/NewMeeting'
+import NewMeeting, { type CreatedMeeting } from './pages/NewMeeting'
 import Review from './pages/Review'
 
 const text = messages.navigation
@@ -21,6 +21,7 @@ function App() {
   const [screen, setScreen] = useState<Screen>('newMeeting')
   const [account, setAccount] = useState<Account | null>(null)
   const [checking, setChecking] = useState(true)
+  const [activeMeeting, setActiveMeeting] = useState<CreatedMeeting | null>(null)
 
   useEffect(() => {
     signedInAccount()
@@ -70,8 +71,10 @@ function App() {
           </button>
         ))}
       </nav>
-      {screen === 'newMeeting' && <NewMeeting />}
-      {screen === 'meeting' && <Meeting />}
+      {screen === 'newMeeting' && <NewMeeting onCreated={setActiveMeeting} />}
+      {screen === 'meeting' && (
+        <Meeting meeting={activeMeeting} onChoose={setActiveMeeting} />
+      )}
       {screen === 'review' && <Review />}
     </>
   )

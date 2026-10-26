@@ -32,6 +32,13 @@ export const messages = {
   },
   meeting: {
     heading: 'Meeting',
+    referenceLabel: 'Meeting reference',
+    referenceHint: 'The reference shown when the meeting was created',
+    use: 'Use meeting',
+    using: 'Checking...',
+    notFound: 'No meeting with that reference.',
+    recordingFor: 'Recording for',
+    change: 'Change meeting',
   },
   review: {
     heading: 'Review MOM',
@@ -143,5 +150,12 @@ export const messages = {
     noticeTitle: 'Recording and AI notice',
     noticeBody:
       'This meeting is recorded, and the audio is processed by an AI service to produce the meeting minutes. The minutes are stored in your account. Tell the people in the room that the meeting is being recorded.',
+    uploadLabel: 'Upload',
+    uploading: 'Uploading the recording...',
+    uploaded: 'Recording uploaded.',
+    uploadFailed: 'The recording could not be uploaded.',
+    uploadFailedGuidance:
+      'The audio is still here and can be played. Try again, and check the connection if it keeps failing.',
+    uploadRetry: 'Retry upload',
   },
 } as const

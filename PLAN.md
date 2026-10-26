@@ -206,14 +206,16 @@ record the change in PROGRESS.md when it does.
   The run found one thing the tests could not: the recording never leaves the
   browser. That is P1-21.
 
-- [ ] P1-21  Upload the recording from the meeting screen
+- [x] P1-21  Upload the recording from the meeting screen
   PRD: §12, §18.1   Files: frontend/src/components/Recorder.tsx, frontend/src/api/*,
   backend/app/api/recordings.py (exists)
   Done when: stopping a recording sends the audio to the meeting's upload endpoint, the
   screen reports the upload, and a failure leaves the audio playable for a retry.
-  Today the recording stays in the tab: playback works and nothing is sent, so the
-  minutes cannot be produced from inside the app. The endpoint and the worker are
-  already exercised through the API in the acceptance run.
+  Done 2026-10-20. Stopping uploads to `POST /meetings/{id}/recordings` with the recorded
+  duration; the screen says "Uploading..." then "Recording uploaded.", and a failure keeps
+  the player and offers Retry upload. The meeting screen binds to the meeting created in
+  New meeting, or to a reference typed in after a reload. Nothing consumes the recording
+  automatically yet; the worker exists and is exercised through the API.
 
 - [x] P1-16  Audit an external MOM for internal content before it is approved
   PRD: §18.4   Files: backend/app/api/mom.py, backend/tests/test_mom_api.py

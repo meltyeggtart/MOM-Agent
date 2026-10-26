@@ -5,7 +5,7 @@ import { messages } from '../i18n/messages'
 
 const text = messages.newMeeting
 
-type CreatedMeeting = {
+export type CreatedMeeting = {
   id: string
   title: string
 }
@@ -17,7 +17,7 @@ function localDateTimeValue(date: Date): string {
   return `${day}T${time}`
 }
 
-function NewMeeting() {
+function NewMeeting({ onCreated }: { onCreated: (meeting: CreatedMeeting) => void }) {
   const [title, setTitle] = useState('')
   const [meetingAt, setMeetingAt] = useState(() =>
     localDateTimeValue(new Date()),
@@ -84,7 +84,9 @@ function NewMeeting() {
         return
       }
 
-      setCreated((await response.json()) as CreatedMeeting)
+      const meeting = (await response.json()) as CreatedMeeting
+      setCreated(meeting)
+      onCreated(meeting)
     } catch {
       setError(text.errorSaveFailed)
     } finally {

@@ -136,6 +136,10 @@ Development wiring (since P1-14):
 - The platform's service worker on `localhost:5173` also answers `/api/auth/me`, so a
   browser session there loses the sign-in on reload. The dev server therefore defaults
   to 5174 (`VITE_DEV_PORT` overrides it).
+- Restart `npm run dev` after editing several files at once. Vite's hot reload sometimes
+  keeps serving an older version of a parent module, so a prop added in `App.tsx` reaches
+  a freshly edited child as `undefined` and the screen dies with a blank page. The code is
+  fine; the served modules are stale.
 - PostgreSQL 17 is a local cluster here, not a container: `sudo pg_ctlcluster 17 main
   start`. It does stop between long sessions; a 500 that reports "connection refused"
   on 5432 means it stopped, not that the code broke.

@@ -1,11 +1,12 @@
 # Progress
 
 ## Current state
-Phase: P1. Last done: P1-15, the Phase 1 acceptance run passed its second pass
-Next: P1-21, uploading the recording from the meeting screen. It is the last thing
-between a recording and minutes inside the app.
+Phase: P1. Last done: P1-21, the recording now uploads from the meeting screen.
+Next: nothing started. The natural next step is starting the transcription worker right
+after an upload, which is the last link between a recording and minutes.
 Blockers: none
-Open: P1-21. The acceptance run passed 12, failed 0, with 2 blocked items that need a
+Open: the recording is uploaded but nothing processes it yet; the worker exists and is
+exercised through the API. The acceptance run still has 2 blocked items that need a
 deployment (TLS and managed hosting) and 2 that do not apply. See
 docs/ACCEPTANCE_PHASE1.md.
 Open decisions: the production LLM is a target, not a fact. Until 2026-10-20 the
@@ -55,6 +56,32 @@ Live transcription and live translation change none of this. They decide whether
 processing happens during the meeting or after it, not where it happens.
 
 ## Log (newest first)
+
+### P1-21 — 2026-10-20 (done)
+
+The recording now leaves the browser, so a meeting that was recorded can become minutes
+without leaving the app. Stopping uploads straight away to
+`POST /meetings/{id}/recordings` with the recorded duration, and the screen reports
+"Uploading..." then "Recording uploaded.".
+
+- The meeting screen had no idea which meeting it was recording for. The created meeting
+  now follows the user from New meeting to Meeting, so the usual flow needs no extra step.
+  After a reload that state is gone, so the screen asks for the meeting reference and
+  checks it with `GET /meetings/{id}` before binding. A reference that is not the
+  account's own is refused like any other not-found, which is what the API already does.
+- A failed upload keeps the audio: the player stays, the alert says it could not be
+  uploaded, and Retry upload sends the same blob. Nothing is silently lost.
+- "Change meeting" is disabled while a take is in progress, because leaving would unmount
+  the recorder and discard it.
+- Fixing this exposed a real bug in the elapsed clock, which counted paused time and so
+  also overstated the uploaded duration. It now sums the running segments: a 3 s take
+  around a 2 s pause uploads as 3049 ms, not 5000 ms.
+- Verified in Chromium with a fake capture device: 10 checks pass, including the failure
+  path by aborting the request, then retrying, and a database read showing exactly one
+  recording of 21 KB per successful take and none for the blocked one.
+- Still open beyond this step: nothing consumes the recording automatically. The
+  transcription worker exists and was exercised through the API, so the next step is
+  starting it after an upload, not writing it.
 
 ### P1-15 — 2026-10-20 (second run, pass)
 

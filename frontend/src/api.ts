@@ -27,3 +27,18 @@ export async function errorMessage(response: Response): Promise<string> {
   // Validation errors arrive as a list; only a plain text detail is worth showing.
   return typeof body?.detail === 'string' ? body.detail : ''
 }
+
+export function uploadRecording(
+  meetingId: string,
+  audio: Blob,
+  durationMs: number,
+): Promise<Response> {
+  const form = new FormData()
+  form.append('file', audio, `recording.${audio.type.includes('ogg') ? 'ogg' : 'webm'}`)
+  form.append('duration_ms', String(durationMs))
+  // The browser owns the multipart boundary, so this must not set Content-Type.
+  return apiFetch(`/meetings/${meetingId}/recordings`, {
+    method: 'POST',
+    body: form,
+  })
+}
