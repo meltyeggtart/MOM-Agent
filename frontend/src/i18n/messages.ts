@@ -140,5 +140,8 @@ export const messages = {
     microphoneDefault: 'System default',
     microphoneFallback: 'Microphone',
     microphoneHint: 'Names appear once the browser may use the microphone.',
+    noticeTitle: 'Recording and AI notice',
+    noticeBody:
+      'This meeting is recorded, and the audio is processed by an AI service to produce the meeting minutes. The minutes are stored in your account. Tell the people in the room that the meeting is being recorded.',
   },
 } as const

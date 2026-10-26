@@ -201,6 +201,13 @@ function Recorder() {
     <section>
       <h3>{text.heading}</h3>
 
+      <div role="note" aria-label={text.noticeTitle}>
+        <p>
+          <strong>{text.noticeTitle}</strong>
+        </p>
+        <p>{text.noticeBody}</p>
+      </div>
+
       <label>
         {text.microphoneLabel}
         <select

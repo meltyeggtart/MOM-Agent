@@ -1,11 +1,13 @@
 # Progress
 
 ## Current state
-Phase: P1. Last done: P1-19 (the recording screen lets the user pick a microphone)
-Next: P1-20 (the AI processing notice)
+Phase: P1. Last done: P1-20 (the recording screen carries the AI processing notice)
+Next: P1-15, the second Phase 1 acceptance run. All five gaps from the first run are
+closed, so the run can now be repeated in full.
 Blockers: none
-Open: P1-15, the Phase 1 acceptance run, failed on five items on 2026-10-20 and is
-tracked as P1-20 (P1-16 to P1-19 closed). See docs/ACCEPTANCE_PHASE1.md.
+Open: P1-15, the Phase 1 acceptance run. It failed on five items on 2026-10-20; those
+are fixed (P1-16 to P1-20 closed), and the step stays open until a second run passes.
+See docs/ACCEPTANCE_PHASE1.md.
 Open decisions: the production LLM is a target, not a fact. Until 2026-10-20 the
 extractor runs through the Messages-compatible gateway present in this environment,
 which ignores the model name and serves deepseek-flash. Azure OpenAI replaces it before
@@ -53,6 +55,25 @@ Live transcription and live translation change none of this. They decide whether
 processing happens during the meeting or after it, not where it happens.
 
 ## Log (newest first)
+
+### P1-20 — 2026-10-20 (done)
+
+The recording screen now says what happens to the audio, and keeps saying it.
+
+- The notice sits above the microphone picker, outside every status branch, so it is on
+  screen before the first click and stays during recording and pause. That ordering is
+  the requirement: §11.2 asks for a notice that AI is processing the audio, and a notice
+  that only appears after recording starts would be too late to matter.
+- Text: the meeting is recorded, the audio goes to an AI service to build the MOM, the
+  MOM is stored in the account, and the people in the room should be told. It deliberately
+  promises no retention period: the 90-day policy is settled but no deletion runs yet, and
+  a notice that states a period the code cannot enforce is worse than one that omits it.
+- §18.5 also asks for this "in every interface language". The interface is English only
+  by the standing decision (`AGENTS.md`), so the notice lives in `messages.ts` with the
+  rest of the screen text — the single file a second language would be translated from.
+
+Verified in Chromium: the notice is visible before recording, while recording and while
+paused, and its text does not change across those states.
 
 ### P1-19 — 2026-10-20 (done)
 

@@ -86,6 +86,9 @@ second run passes.
   records from the chosen one, and the choice holds through pause and resume. Verified in
   Chromium with a fake capture device, since this container has no real microphone. Gap 5
   is still open.
+- 2026-10-20, P1-20: gap 5 is closed. The recording screen carries a notice that the
+  audio is processed by AI, visible before recording starts and while it runs. All five
+  gaps are closed; this run should be repeated to confirm.
 
 ## What this run does not cover
 

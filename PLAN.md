@@ -238,10 +238,14 @@ record the change in PROGRESS.md when it does.
   recording runs, because a stream keeps the microphone it started with. A device that
   disappears falls back to the default; a device chosen and then unplugged reports it.
 
-- [ ] P1-20  Show the AI processing notice on the recording screen
+- [x] P1-20  Show the AI processing notice on the recording screen
   PRD: §18.5, §11.2   Files: frontend/src/components/Recorder.tsx, frontend/src/i18n/messages.ts
   Done when: the notice is visible before and during recording, in every interface
   language.
+  Done 2026-10-20. It sits above the controls and does not move when the status changes,
+  so it is on screen before the first click and stays there while recording and paused.
+  The text lives in `messages.ts`; English is the only interface language by the standing
+  decision, and the file is the place a second one would be translated.
 
 
 ## Phase 2 — Optional Live Transcription (PRD §13)
