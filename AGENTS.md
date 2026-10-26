@@ -153,6 +153,15 @@ Microphone (since P1-19):
   "Fake Audio Input 1" and friends. Playwright is not installed; `python3 -m venv` plus
   `pip install playwright` in a scratch directory drives that browser through
   `executable_path="/usr/bin/chromium"` without downloading another one.
+- The fake device starts producing audio a moment after `getUserMedia` resolves; a check
+  that stops after 200 ms records a few hundred bytes. Wait about a second and a half.
+- Downloads are capturable: `with page.expect_download() as info:` around the click, then
+  `info.value.save_as(...)`. That is how the exports were read back in the acceptance run.
+
+Approval gate (since P1-17):
+- The language check compares every field, `internal_notes` included. A note written in
+  English only is refused because the other versions have none. Hand-written fixtures
+  must translate the notes as well, or approval fails for a reason that looks unrelated.
 
 Git:
 - `origin` holds no credential, so a push stops at "Username for 'https://github.com'"

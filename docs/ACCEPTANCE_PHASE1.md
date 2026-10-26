@@ -96,3 +96,74 @@ second run passes.
 - Anything that needs a deployment: TLS, Azure storage, managed hosting.
 - Extraction quality on real audio; P1-07 covered the mechanism, not accuracy.
 - Concurrent use by two people on the same meeting.
+
+## Second run — 2026-10-20
+
+Repeated after P1-16 to P1-20 closed the five gaps. Same PRD sections, same limits, with
+one addition: this container now has a way to exercise a microphone.
+
+### How the run was made
+
+- Backend: `uvicorn app.main:app --port 8010` against local PostgreSQL 17.
+- Frontend: `npm run dev`, served on `http://localhost:5174`.
+- Browser: real Chromium with `--use-fake-device-for-media-stream`, driven by Playwright,
+  which supplies "Fake Audio Input 1" and two others. This is the first run that could
+  start, pause, resume and stop a recording at all.
+- The API half is a throwaway script: two accounts, three meetings, both MOMs, approval,
+  export and isolation probes. The browser half registers an account and creates a
+  meeting through the form, records, then reviews, approves and downloads through the
+  screen. Neither script is part of the repository.
+- Automated suites: `uv run pytest` (134 passed), `uv run ruff check .` (clean),
+  `npm run build` and `npm run lint` (clean).
+
+### Result
+
+12 pass, 0 fail, 2 blocked, 2 not applicable.
+
+### 18.1 Recording and meeting setup
+
+| Requirement | Result | Evidence |
+| --- | --- | --- |
+| Create a physical meeting and enter metadata | Pass | Created through the form with client, participants, agenda, location, type and all three languages; `GET /meetings/{id}` returned every field unchanged |
+| Select a microphone, then start, pause, resume and stop | Pass | Four inputs listed with "System default" first; recording from a named device ran through pause, resume and stop and produced an audio element. Device list and choice checked in P1-19 |
+| Recording status clearly visible | Pass | "Status: Recording", "Paused", "Recording stopped", with a running `Elapsed` counter |
+| Recording continues if live transcription or translation is off or unavailable | Not applicable | Neither live feature exists yet; they are Phase 2 |
+
+### 18.4 MOM generation and review
+
+| Requirement | Result | Evidence |
+| --- | --- | --- |
+| Separate Internal and External MOM | Pass | Two MOMs per meeting, stored and read independently (201 for both) |
+| Each MOM includes English, Mandarin and Indonesian in one document | Pass | One document, three versions listed as `en`, `zh`, `id` |
+| Extract discussion points, decisions, action items, owners, deadlines, open questions | Pass | All sections present with an owner and a deadline. Extraction itself was P1-07; this run reviewed a stored document, as the first run did |
+| Do not invent owners, deadlines, decisions or commitments when absent | Pass | `test_keeps_missing_owner_and_deadline_as_null`, still green. Not re-exercised here because extraction did not run |
+| External MOM checked for internal content and requires approval | Pass | A sentence about the 9 percent margin, in all three languages, was refused with the `[en]` excerpt quoted; `acknowledge_issues` then approved it. Same result through the screen: findings listed, status stayed draft, "Approve anyway" went through |
+| Bilingual inconsistencies flagged | Pass | A deadline of 3 November in English and 10 November in Mandarin and Indonesian was refused as `action_items[0].deadline` with the three values named; the on-demand endpoint reported one mismatch |
+| Edit and approve both MOMs and export approved files | Pass | Edited through the screen, saved as a draft, approved and locked; Word (37,105 bytes) and PDF (4,588 bytes) downloaded from the button, and both files open as their format. A draft still answers 409, and an edit to an approved MOM answers 409. Hiding a language removes it from the export (no Chinese characters in the Word file) while all three versions stay stored |
+
+### 18.5 Security and cloud operation
+
+| Requirement | Result | Evidence |
+| --- | --- | --- |
+| Meeting data transmitted and stored securely | Blocked | Unchanged: plain HTTP here, `cookie_secure` false, local database. Depends on the deployment, which does not exist |
+| Recording status and AI processing notice are visible | Pass | The notice is on screen before recording, while recording and while paused, in the same words each time |
+| Guest data follows a temporary retention policy | Not applicable | Guest mode was dropped 2026-10-15 |
+| Authenticated users reach only their own records | Pass | A second account got 404 for the meeting and its MOM; an anonymous caller got 401 |
+| Runs on managed hosting without the team administering virtual machines | Blocked | Unchanged: nothing is deployed |
+
+### What the run found
+
+- The gate also compares **internal notes** across languages. A note written in English
+  only is refused ("English includes the note ..., while the Chinese and Indonesian
+  versions have an empty internal_notes list"). That is the check doing its job, but it
+  means notes must be translated like every other field, which is worth knowing before
+  anyone writes a MOM by hand.
+- An edit that adds a claim the other versions do not carry is refused, even on the
+  internal MOM. Rephrasing without changing the meaning passes. Both were observed by
+  accident while driving the screen.
+- The one gap this run cannot close by testing: **the recording never leaves the
+  browser.** The meeting screen records, plays back and stops there; nothing uploads the
+  audio, so a user cannot get from a recorded meeting to minutes inside the app. The
+  upload endpoint and the worker exist and were exercised through the API, so this is a
+  missing button and one call, not a missing pipeline. Recorded as P1-21.
+

@@ -1,13 +1,13 @@
 # Progress
 
 ## Current state
-Phase: P1. Last done: P1-20 (the recording screen carries the AI processing notice)
-Next: P1-15, the second Phase 1 acceptance run. All five gaps from the first run are
-closed, so the run can now be repeated in full.
+Phase: P1. Last done: P1-15, the Phase 1 acceptance run passed its second pass
+Next: P1-21, uploading the recording from the meeting screen. It is the last thing
+between a recording and minutes inside the app.
 Blockers: none
-Open: P1-15, the Phase 1 acceptance run. It failed on five items on 2026-10-20; those
-are fixed (P1-16 to P1-20 closed), and the step stays open until a second run passes.
-See docs/ACCEPTANCE_PHASE1.md.
+Open: P1-21. The acceptance run passed 12, failed 0, with 2 blocked items that need a
+deployment (TLS and managed hosting) and 2 that do not apply. See
+docs/ACCEPTANCE_PHASE1.md.
 Open decisions: the production LLM is a target, not a fact. Until 2026-10-20 the
 extractor runs through the Messages-compatible gateway present in this environment,
 which ignores the model name and serves deepseek-flash. Azure OpenAI replaces it before
@@ -55,6 +55,24 @@ Live transcription and live translation change none of this. They decide whether
 processing happens during the meeting or after it, not where it happens.
 
 ## Log (newest first)
+
+### P1-15 — 2026-10-20 (second run, pass)
+
+The acceptance run passed: 12 pass, 0 fail, 2 blocked, 2 not applicable.
+
+- Run in Chromium with a fake capture device, driven by Playwright. That is the first
+  time recording start, pause, resume and stop could be exercised at all, and the first
+  time the export could be downloaded through the screen and read back.
+- New evidence this run adds beyond re-ticking the old boxes: the Word export of a MOM
+  with only English shown contains no Chinese characters while all three versions stay
+  stored, so hiding is a view and not a deletion.
+- One new gap, and it is the important one: the recording never leaves the browser. The
+  meeting screen records and plays the audio but sends nothing, so a user cannot reach
+  minutes from inside the app. The upload endpoint and worker exist and were exercised
+  through the API, so this is a missing call, not a missing pipeline. Filed as P1-21.
+- Behaviour worth knowing, both found by accident while driving the screen: the approval
+  gate compares internal notes across languages (a note in English only is refused), and
+  an edit that adds a claim the other versions lack is refused even on the internal MOM.
 
 ### P1-20 — 2026-10-20 (done)
 

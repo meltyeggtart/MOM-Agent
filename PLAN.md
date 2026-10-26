@@ -194,12 +194,26 @@ record the change in PROGRESS.md when it does.
   Guest mode dropped 2026-10-15, so the guest-deletion half is gone. Deliberate
   deviation from PRD §11.1; see PROGRESS.md.
 
-- [ ] P1-15  Phase 1 acceptance run against Section 18.1, 18.4, 18.5
+- [x] P1-15  Phase 1 acceptance run against Section 18.1, 18.4, 18.5
   PRD: §18   Files: docs/ACCEPTANCE_PHASE1.md
   Done when: checklist passed and logged.
   Skip the guest-data item of §18.5 (guest mode dropped 2026-10-15).
-  First run 2026-10-20: 7 pass, 5 fail, 2 blocked, 2 not applicable. Still open.
-  The five failures are P1-16 to P1-20 below; re-run this step after they close.
+  First run 2026-10-20: 7 pass, 5 fail, 2 blocked, 2 not applicable.
+  Second run 2026-10-20, after P1-16 to P1-20 closed those five: 12 pass, 0 fail,
+  2 blocked (both need a deployment), 2 not applicable. Run in Chromium with a fake
+  capture device, so recording start/pause/resume/stop was exercised for the first
+  time, and the export was read back to confirm a hidden language is left out.
+  The run found one thing the tests could not: the recording never leaves the
+  browser. That is P1-21.
+
+- [ ] P1-21  Upload the recording from the meeting screen
+  PRD: §12, §18.1   Files: frontend/src/components/Recorder.tsx, frontend/src/api/*,
+  backend/app/api/recordings.py (exists)
+  Done when: stopping a recording sends the audio to the meeting's upload endpoint, the
+  screen reports the upload, and a failure leaves the audio playable for a retry.
+  Today the recording stays in the tab: playback works and nothing is sent, so the
+  minutes cannot be produced from inside the app. The endpoint and the worker are
+  already exercised through the API in the acceptance run.
 
 - [x] P1-16  Audit an external MOM for internal content before it is approved
   PRD: §18.4   Files: backend/app/api/mom.py, backend/tests/test_mom_api.py
