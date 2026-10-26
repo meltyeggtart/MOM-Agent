@@ -1,7 +1,10 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.api.auth import router as auth_router
+from app.api.export import router as export_router
 from app.api.meetings import router as meetings_router
+from app.api.mom import router as mom_router
 from app.api.recordings import router as recordings_router
 from app.core.settings import settings
 
@@ -12,10 +15,16 @@ app.add_middleware(
     allow_origins=settings.cors_origins,
     allow_methods=["*"],
     allow_headers=["*"],
+    # The session cookie must travel with cross-origin requests from the Vite dev
+    # server, which is a different origin from the API.
+    allow_credentials=True,
 )
 
+app.include_router(auth_router)
 app.include_router(meetings_router)
 app.include_router(recordings_router)
+app.include_router(mom_router)
+app.include_router(export_router)
 
 
 @app.get("/health")

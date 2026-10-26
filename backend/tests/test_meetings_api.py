@@ -61,3 +61,10 @@ def test_create_rejects_an_unknown_language(client: TestClient) -> None:
     response = client.post("/meetings", json={**VALID_MEETING, "languages": ["fr"]})
 
     assert response.status_code == 422
+
+
+def test_create_accepts_indonesian(client: TestClient) -> None:
+    response = client.post("/meetings", json={**VALID_MEETING, "languages": ["id"]})
+
+    assert response.status_code == 201
+    assert response.json()["languages"] == ["id"]

@@ -1,13 +1,11 @@
 import { useState, type FormEvent } from 'react'
 
+import { apiFetch } from '../api'
 import { messages } from '../i18n/messages'
 
 const text = messages.newMeeting
 
-const API_BASE_URL: string =
-  import.meta.env.VITE_API_BASE_URL ?? 'http://127.0.0.1:8000'
-
-type CreatedMeeting = {
+export type CreatedMeeting = {
   id: string
   title: string
 }
@@ -19,7 +17,7 @@ function localDateTimeValue(date: Date): string {
   return `${day}T${time}`
 }
 
-function NewMeeting() {
+function NewMeeting({ onCreated }: { onCreated: (meeting: CreatedMeeting) => void }) {
   const [title, setTitle] = useState('')
   const [meetingAt, setMeetingAt] = useState(() =>
     localDateTimeValue(new Date()),
@@ -63,7 +61,7 @@ function NewMeeting() {
 
     setSaving(true)
     try {
-      const response = await fetch(`${API_BASE_URL}/meetings`, {
+      const response = await apiFetch('/meetings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -86,7 +84,9 @@ function NewMeeting() {
         return
       }
 
-      setCreated((await response.json()) as CreatedMeeting)
+      const meeting = (await response.json()) as CreatedMeeting
+      setCreated(meeting)
+      onCreated(meeting)
     } catch {
       setError(text.errorSaveFailed)
     } finally {
@@ -136,6 +136,14 @@ function NewMeeting() {
               onChange={() => toggleLanguage('zh')}
             />
             {text.languageMandarin}
+          </label>
+          <label>
+            <input
+              type="checkbox"
+              checked={languages.includes('id')}
+              onChange={() => toggleLanguage('id')}
+            />
+            {text.languageIndonesian}
           </label>
         </fieldset>
 

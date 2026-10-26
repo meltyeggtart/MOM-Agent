@@ -1,8 +1,4 @@
-"""Database tables for meetings, recordings, transcripts and MOMs.
-
-The PRD asks for the account link in the access-control step, so no owner column is
-defined here yet. Nothing in production depends on that ordering.
-"""
+"""Database tables for accounts, sessions, meetings, recordings, transcripts and MOMs."""
 
 import uuid
 from datetime import datetime
@@ -43,10 +39,47 @@ class MomStatus(StrEnum):
     approved = "approved"
 
 
+class User(Base):
+    __tablename__ = "users"
+
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    # Stored lower-cased by the application so the unique index is case-insensitive.
+    email: Mapped[str] = mapped_column(String(320), unique=True, index=True)
+    password_hash: Mapped[str] = mapped_column(String(255))
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+
+    sessions: Mapped[list["UserSession"]] = relationship(
+        back_populates="user", cascade="all, delete-orphan"
+    )
+    meetings: Mapped[list["Meeting"]] = relationship(back_populates="owner")
+
+
+class UserSession(Base):
+    __tablename__ = "user_sessions"
+
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), index=True
+    )
+    # SHA-256 of the cookie value; the token itself is never stored.
+    token_hash: Mapped[str] = mapped_column(String(64), unique=True, index=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+    user: Mapped[User] = relationship(back_populates="sessions")
+
+
 class Meeting(Base):
     __tablename__ = "meetings"
 
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    owner_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), index=True
+    )
     title: Mapped[str] = mapped_column(String(300))
     meeting_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     languages: Mapped[list[str]] = mapped_column(ARRAY(String(8)))
@@ -76,6 +109,7 @@ class Meeting(Base):
     moms: Mapped[list["Mom"]] = relationship(
         back_populates="meeting", cascade="all, delete-orphan"
     )
+    owner: Mapped[User] = relationship(back_populates="meetings")
 
 
 class Recording(Base):
