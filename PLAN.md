@@ -201,11 +201,14 @@ record the change in PROGRESS.md when it does.
   First run 2026-10-20: 7 pass, 5 fail, 2 blocked, 2 not applicable. Still open.
   The five failures are P1-16 to P1-20 below; re-run this step after they close.
 
-- [ ] P1-16  Audit an external MOM for internal content before it is approved
+- [x] P1-16  Audit an external MOM for internal content before it is approved
   PRD: §18.4   Files: backend/app/api/mom.py, backend/tests/test_mom_api.py
   Done when: approving an external MOM runs the check and a finding blocks approval
   until the user acknowledges it. `app/services/sensitive.py` exists and is never
   called today; this step connects it.
+  Done 2026-10-20. Secrets are the internal MOM's notes. A finding answers 409 with the
+  excerpt; `{"acknowledge_findings": true}` approves anyway. A check that cannot run
+  answers 503 and nothing is approved.
 
 - [ ] P1-17  Check the three language versions agree before approval
   PRD: §18.4   Files: backend/app/api/mom.py, backend/tests/test_mom_api.py
@@ -213,10 +216,14 @@ record the change in PROGRESS.md when it does.
   blocks approval, or is confirmed with one explicit acknowledgement.
   Same shape as P1-16: `app/services/consistency.py` exists and is never called.
 
-- [ ] P1-18  Export only approved MOMs, and add the export control to the review screen
+- [ ] P1-18  Export only approved MOMs, and finish the review screen's decisions
   PRD: §18.4   Files: backend/app/api/export.py, frontend/src/pages/Review.tsx
   Done when: exporting a draft answers 409, and the review screen offers Word and PDF
   only once the MOM is approved.
+  Also belongs here: when approval is refused because the audit found something, the
+  screen shows the findings with a way to approve anyway (the API already accepts
+  `acknowledge_findings`), not just an error line. Editing the leak away already works
+  as the safe route.
 
 - [ ] P1-19  Let the user choose the microphone
   PRD: §18.1   Files: frontend/src/components/Recorder.tsx, frontend/src/i18n/messages.ts

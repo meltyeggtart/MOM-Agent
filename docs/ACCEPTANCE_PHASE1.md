@@ -70,6 +70,13 @@ hosting or TLS could only be read from configuration.
 Follow-ups are written into `PLAN.md` as P1-16 to P1-20. P1-15 stays open until a
 second run passes.
 
+## Follow-ups since this run
+
+- 2026-10-20, P1-16: gap 1 is closed. Approving an external MOM now runs the audit
+  against the internal MOM's notes; a finding refuses approval and names the sentence,
+  and an explicit `acknowledge_findings` is needed to proceed. A check that cannot run
+  refuses too. Gap 2 onwards are still open.
+
 ## What this run does not cover
 
 - The recording path end to end (no microphone here), including uploading audio.

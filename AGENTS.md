@@ -141,6 +141,10 @@ Development wiring (since P1-14):
   on 5432 means it stopped, not that the code broke.
 - Start the API and the dev server with `setsid nohup ... &`. A plain background job is
   reaped when the tool call that started it ends, which looks like a crash.
+- That API process needs `ANTHROPIC_BASE_URL` and `ANTHROPIC_API_KEY` in its own
+  environment, passed on the same command line that starts it. Without them every route
+  that calls the model answers 503 "must be set", which looks like an outage but is the
+  process missing its credentials.
 
 ## Conventions (naming, error handling, logging, i18n EN/ZH)
 - Naming: snake_case in Python, camelCase in TypeScript, kebab-case for file names.

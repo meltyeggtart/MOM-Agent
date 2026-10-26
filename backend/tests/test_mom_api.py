@@ -1,4 +1,17 @@
+from collections.abc import Callable, Iterator, Sequence
+
+import pytest
 from fastapi.testclient import TestClient
+
+from app.main import app
+from app.schemas.meeting import Language
+from app.schemas.mom import MomDocument
+from app.services.sensitive import (
+    Finding,
+    SensitiveCheckError,
+    SensitiveReport,
+    get_sensitive_checker,
+)
 
 
 def create_meeting(client: TestClient) -> str:
@@ -32,10 +45,15 @@ def payload(audience: str = "internal", visible: list[str] | None = None) -> dic
     }
 
 
-def store(client: TestClient, meeting_id: str, body: dict | None = None) -> dict:
+def store(
+    client: TestClient,
+    meeting_id: str,
+    body: dict | None = None,
+    audience: str = "internal",
+) -> dict:
     response = client.post(
-        f"/meetings/{meeting_id}/moms/internal/versions",
-        json=body or payload(),
+        f"/meetings/{meeting_id}/moms/{audience}/versions",
+        json=body or payload(audience),
     )
     assert response.status_code == 201
     return response.json()
@@ -179,3 +197,139 @@ def test_languages_must_be_a_subset(client: TestClient) -> None:
     )
 
     assert response.status_code == 422
+
+
+class FakeChecker:
+    """Stands in for the model so these tests stay offline and deterministic."""
+
+    def __init__(self, outcome: SensitiveReport | Exception) -> None:
+        self.outcome = outcome
+        self.calls: list[tuple[MomDocument, list[str]]] = []
+
+    def check(self, external: MomDocument, secrets: Sequence[str]) -> SensitiveReport:
+        self.calls.append((external, list(secrets)))
+        if isinstance(self.outcome, Exception):
+            raise self.outcome
+        return self.outcome
+
+
+@pytest.fixture
+def use_checker() -> Iterator[Callable[[SensitiveReport | Exception], FakeChecker]]:
+    def install(outcome: SensitiveReport | Exception) -> FakeChecker:
+        fake = FakeChecker(outcome)
+        app.dependency_overrides[get_sensitive_checker] = lambda: fake
+        return fake
+
+    yield install
+    app.dependency_overrides.pop(get_sensitive_checker, None)
+
+
+def leak(excerpt: str = "Our margin is thinner than last quarter.") -> Finding:
+    return Finding(
+        language=Language.en,
+        excerpt=excerpt,
+        reason="This restates an internal figure.",
+    )
+
+
+def test_a_flagged_external_mom_is_not_approved(
+    client: TestClient, use_checker: Callable[..., FakeChecker]
+) -> None:
+    meeting_id = create_meeting(client)
+    store(client, meeting_id)
+    store(client, meeting_id, audience="external")
+    use_checker(SensitiveReport(findings=[leak()]))
+
+    response = client.post(f"/meetings/{meeting_id}/moms/external/approve")
+
+    assert response.status_code == 409
+    assert "Our margin is thinner" in response.json()["detail"]
+    assert client.get(f"/meetings/{meeting_id}/moms/external").json()["status"] == "draft"
+
+
+def test_an_acknowledged_finding_still_approves(
+    client: TestClient, use_checker: Callable[..., FakeChecker]
+) -> None:
+    meeting_id = create_meeting(client)
+    store(client, meeting_id)
+    store(client, meeting_id, audience="external")
+    use_checker(SensitiveReport(findings=[leak()]))
+
+    response = client.post(
+        f"/meetings/{meeting_id}/moms/external/approve",
+        json={"acknowledge_findings": True},
+    )
+
+    assert response.status_code == 200
+    assert response.json()["status"] == "approved"
+
+
+def test_a_clean_external_mom_approves_without_a_word(
+    client: TestClient, use_checker: Callable[..., FakeChecker]
+) -> None:
+    meeting_id = create_meeting(client)
+    store(client, meeting_id, audience="external")
+    use_checker(SensitiveReport())
+
+    response = client.post(f"/meetings/{meeting_id}/moms/external/approve")
+
+    assert response.status_code == 200
+    assert response.json()["status"] == "approved"
+
+
+def test_the_audit_reads_the_internal_notes(
+    client: TestClient, use_checker: Callable[..., FakeChecker]
+) -> None:
+    meeting_id = create_meeting(client)
+    internal = payload()
+    internal["versions"][0]["content"]["internal_notes"] = ["Our margin is thin."]
+    store(client, meeting_id, internal)
+    store(client, meeting_id, audience="external")
+    checker = use_checker(SensitiveReport())
+
+    client.post(f"/meetings/{meeting_id}/moms/external/approve")
+
+    assert checker.calls[0][1] == ["Our margin is thin."]
+
+
+def test_the_audit_sees_the_document_it_checks(
+    client: TestClient, use_checker: Callable[..., FakeChecker]
+) -> None:
+    meeting_id = create_meeting(client)
+    external = payload("external")
+    external["versions"][0]["content"]["overview"] = "The budget is settled."
+    store(client, meeting_id, external, audience="external")
+    checker = use_checker(SensitiveReport())
+
+    client.post(f"/meetings/{meeting_id}/moms/external/approve")
+
+    checked = checker.calls[0][0]
+    assert checked.audience.value == "external"
+    assert checked.versions[0].content.overview == "The budget is settled."
+
+
+def test_an_internal_mom_is_never_audited(
+    client: TestClient, use_checker: Callable[..., FakeChecker]
+) -> None:
+    meeting_id = create_meeting(client)
+    store(client, meeting_id)
+    checker = use_checker(SensitiveReport(findings=[leak()]))
+
+    response = client.post(f"/meetings/{meeting_id}/moms/internal/approve")
+
+    assert response.status_code == 200
+    assert checker.calls == []
+
+
+def test_a_failed_check_blocks_approval(
+    client: TestClient, use_checker: Callable[..., FakeChecker]
+) -> None:
+    meeting_id = create_meeting(client)
+    store(client, meeting_id, audience="external")
+    use_checker(SensitiveCheckError("the model timed out"))
+
+    response = client.post(f"/meetings/{meeting_id}/moms/external/approve")
+
+    assert response.status_code == 503
+    assert client.get(f"/meetings/{meeting_id}/moms/external").json()["status"] == "draft"
+

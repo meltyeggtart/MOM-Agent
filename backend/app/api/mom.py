@@ -18,6 +18,12 @@ from app.api.meetings import load_meeting
 from app.db.models import Mom, MomStatus, MomVersion
 from app.db.session import get_session
 from app.schemas.mom import Audience, MomDocument
+from app.services.sensitive import (
+    SensitiveChecker,
+    SensitiveCheckError,
+    SensitiveReport,
+    get_sensitive_checker,
+)
 
 router = APIRouter(prefix="/meetings/{meeting_id}/moms", tags=["moms"])
 
@@ -89,6 +95,64 @@ def _check_audience(document: MomDocument, audience: Audience) -> None:
 
 def current_version(mom: Mom) -> MomVersion:
     return max(mom.versions, key=lambda version: version.version_number)
+
+
+SensitiveCheckerDep = Annotated[SensitiveChecker, Depends(get_sensitive_checker)]
+
+
+class ApprovalRequest(BaseModel):
+    """Sent only when the external-content audit has already raised findings."""
+
+    acknowledge_findings: bool = False
+
+
+def _internal_statements(session: Session, meeting_id: uuid.UUID) -> list[str]:
+    """The internal-only statements an external MOM must never reveal.
+
+    The internal MOM's notes are this product's own record of what stayed inside the
+    room, so they are what the audit compares the external text against.
+    """
+    internal = (
+        session.query(Mom)
+        .filter(Mom.meeting_id == meeting_id, Mom.audience == Audience.internal.value)
+        .one_or_none()
+    )
+    if internal is None:
+        return []
+
+    statements: list[str] = []
+    document = MomDocument.model_validate(current_version(internal).content)
+    for version in document.versions:
+        for note in version.content.internal_notes:
+            if note not in statements:
+                statements.append(note)
+    return statements
+
+
+def _audit_external(
+    document: MomDocument, statements: list[str], checker: SensitiveChecker
+) -> SensitiveReport:
+    try:
+        return checker.check(document, statements)
+    except SensitiveCheckError as exc:
+        # Fail closed. An external MOM nobody could check must not reach a client.
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="The external MOM could not be checked for internal content, so it "
+            f"was not approved: {exc}",
+        ) from exc
+
+
+def _findings_message(report: SensitiveReport) -> str:
+    lines = [
+        "The external MOM may reveal internal information and was not approved.",
+        "Edit it, or approve again with acknowledge_findings if these are acceptable:",
+    ]
+    lines.extend(
+        f"- [{finding.language}] {finding.excerpt} ({finding.reason})"
+        for finding in report.findings
+    )
+    return "\n".join(lines)
 
 
 @router.post(
@@ -170,6 +234,8 @@ def approve(
     audience: Audience,
     session: SessionDep,
     user: CurrentUser,
+    checker: SensitiveCheckerDep,
+    request: ApprovalRequest | None = None,
 ) -> MomRead:
     mom = load_mom(session, meeting_id, audience, user.id)
     if mom.status != MomStatus.draft:
@@ -178,6 +244,20 @@ def approve(
         )
 
     current = current_version(mom)
+
+    if audience is Audience.external:
+        report = _audit_external(
+            MomDocument.model_validate(current.content),
+            _internal_statements(session, meeting_id),
+            checker,
+        )
+        acknowledged = request is not None and request.acknowledge_findings
+        if not report.is_clean and not acknowledged:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=_findings_message(report),
+            )
+
     current.approved_at = datetime.now(UTC)
     # Taken from the session, not the request, so the trail cannot name someone else.
     current.approved_by = user.email

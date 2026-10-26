@@ -1,11 +1,11 @@
 # Progress
 
 ## Current state
-Phase: P1. Last done: P1-14 (accounts and sessions)
-Next: P1-16 (audit an external MOM before approval)
+Phase: P1. Last done: P1-16 (external-content audit before approval)
+Next: P1-17 (check the three language versions agree)
 Blockers: none
 Open: P1-15, the Phase 1 acceptance run, failed on five items on 2026-10-20 and is
-tracked as P1-16 to P1-20. See docs/ACCEPTANCE_PHASE1.md.
+tracked as P1-17 to P1-20 (P1-16 closed). See docs/ACCEPTANCE_PHASE1.md.
 Open decisions: the production LLM is a target, not a fact. Until 2026-10-20 the
 extractor runs through the Messages-compatible gateway present in this environment,
 which ignores the model name and serves deepseek-flash. Azure OpenAI replaces it before
@@ -53,6 +53,44 @@ Live transcription and live translation change none of this. They decide whether
 processing happens during the meeting or after it, not where it happens.
 
 ## Log (newest first)
+
+### P1-16 — 2026-10-20 (done)
+
+Wired the external-content audit into approval. Before this, `sensitive.py` was a
+tested service with no caller, so an external MOM could reach a client unread.
+
+The design choices worth knowing:
+
+- The secrets it checks against are the **internal MOM's `internal_notes`** for the same
+  meeting, deduplicated across languages. That is the product's own record of what
+  stayed in the room, so no new place to declare secrets was needed. If no internal MOM
+  exists yet, the audit runs with an empty list and only catches what reads as internal.
+- A finding answers **409** with a plain-text list of excerpt and reason, and the MOM
+  stays a draft. The text shape is deliberate: the review screen already prints a string
+  `detail`, so the reviewer sees which sentence is the problem without a UI change.
+- Re-posting with `{"acknowledge_findings": true}` approves anyway. The acknowledgement
+  is not stored: there is no column for it, and the PRD asks only that the user
+  acknowledge. Recording who overrode what is in the parking lot.
+- A check that cannot run answers **503** and approves nothing. Failing closed is the
+  point: an audit that silently degrades to "no findings" would be worse than none.
+- Internal MOMs never call the checker. The route only audits `external`.
+
+Verified twice. The unit tests use a fake checker (seven new tests: blocked, acknowledged,
+clean, notes passed through, document passed through, internal untouched, failure
+blocks). Then a live run against the real model with a deliberately leaked sentence in
+all three languages: approval answered 409 quoting *"Our margin on this account is 8
+percent and we expect to drop them in Q1"* with the reason, the MOM stayed a draft, and
+the acknowledged retry approved.
+
+One consequence to be honest about: the review screen can now be refused with no button
+to acknowledge, because that control does not exist yet. The safe way out works today —
+edit the sentence away and approve — and the button is written into P1-18, which already
+touches that screen.
+
+Run into while testing: the API process needs `ANTHROPIC_BASE_URL` and
+`ANTHROPIC_API_KEY` in its own environment. Started without them, every approval got a
+503 with "must be set" — which is the fail-closed path doing its job, and worth knowing
+before mistaking it for a code bug.
 
 ### P1-15 — 2026-10-20 (first run, open)
 
@@ -769,6 +807,9 @@ It is not a step in PLAN.md. Still to decide whether it stays a reference docume
 or becomes a step of its own.
 
 ## Parking lot
+- From P1-16: the acknowledgement of a sensitive-content finding is not stored. Add a
+  column and show in the version history that this version was approved over a finding,
+  by whom and when.
 - Pending step: the S3 storage driver, blocked on AWS credentials for the chosen
   Singapore region. Until then audio is written under the local `.storage/` directory,
   which is gitignored.
