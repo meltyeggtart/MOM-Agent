@@ -1,11 +1,11 @@
 # Progress
 
 ## Current state
-Phase: P1. Last done: P1-17 (language versions checked before approval)
-Next: P1-18 (export only approved MOMs; review screen decisions)
+Phase: P1. Last done: P1-18 (export waits for approval; the screen can approve anyway)
+Next: P1-19 (let the user choose the microphone)
 Blockers: none
 Open: P1-15, the Phase 1 acceptance run, failed on five items on 2026-10-20 and is
-tracked as P1-18 to P1-20 (P1-16 and P1-17 closed). See docs/ACCEPTANCE_PHASE1.md.
+tracked as P1-19 to P1-20 (P1-16 to P1-18 closed). See docs/ACCEPTANCE_PHASE1.md.
 Open decisions: the production LLM is a target, not a fact. Until 2026-10-20 the
 extractor runs through the Messages-compatible gateway present in this environment,
 which ignores the model name and serves deepseek-flash. Azure OpenAI replaces it before
@@ -53,6 +53,35 @@ Live transcription and live translation change none of this. They decide whether
 processing happens during the meeting or after it, not where it happens.
 
 ## Log (newest first)
+
+### P1-18 — 2026-10-20 (done)
+
+Export now waits for approval, and the review screen has the controls to match.
+
+- A draft answers **409** on both `export.docx` and `export.pdf`, with "The MOM is still
+  a draft. Approve it before exporting." Before this, any draft left the app as a
+  finished file.
+- The screen offers Word and PDF **only on an approved MOM**, and fetches them through
+  `apiFetch` so the session cookie travels with the request. A plain link would have
+  been a 401.
+- When approval is refused, the screen now shows the findings themselves, in the words
+  the server sent, and a **"Approve anyway"** button that retries with
+  `acknowledge_issues`. Editing the leak away is still the route offered first.
+- `onClick={approve}` became `onClick={() => approve()}`. React passes the click event
+  as the first argument, so the old call site would have acknowledged every refusal
+  automatically. It only became a bug with this change, and it is the kind that hides
+  until a real leak is on screen.
+
+Verified in the browser against the real model, on a meeting whose external MOM restates
+an internal note about a 12 percent price rise. Approve refused with both findings in
+one message (leak, and English saying more than Mandarin and Indonesian), status stayed
+draft. "Approve anyway" approved, the status flipped to approved and locked, and both
+downloads returned 200. Export of the same draft before approval returned 409.
+
+Two tests added (`test_a_draft_cannot_be_exported`, `test_an_approved_mom_exports`).
+The export tests in `test_documents.py` now approve first, which needed a shared
+`clean_checks` fixture in `conftest.py`, because approval calls the model twice. Suite:
+134 passed.
 
 ### P1-17 — 2026-10-20 (done)
 

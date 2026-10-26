@@ -138,9 +138,13 @@ def store(client: TestClient, meeting_id: str) -> None:
         json=document().model_dump(mode="json"),
     )
     assert response.status_code == 201
+    approved = client.post(f"/meetings/{meeting_id}/moms/internal/approve")
+    assert approved.status_code == 200
 
 
-def test_endpoint_returns_a_word_file(client: TestClient) -> None:
+def test_endpoint_returns_a_word_file(
+    client: TestClient, clean_checks: None
+) -> None:
     meeting_id = create_meeting(client)
     store(client, meeting_id)
 
@@ -152,7 +156,7 @@ def test_endpoint_returns_a_word_file(client: TestClient) -> None:
     assert f'mom-{meeting_id}-internal.docx' in response.headers["content-disposition"]
 
 
-def test_endpoint_returns_a_pdf(client: TestClient) -> None:
+def test_endpoint_returns_a_pdf(client: TestClient, clean_checks: None) -> None:
     meeting_id = create_meeting(client)
     store(client, meeting_id)
 

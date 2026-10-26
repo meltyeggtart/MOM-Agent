@@ -219,14 +219,14 @@ record the change in PROGRESS.md when it does.
   with the field and the values that differ. `GET /{audience}/consistency` reports on
   demand; it is not on the plain read, because that is a model call on every page load.
 
-- [ ] P1-18  Export only approved MOMs, and finish the review screen's decisions
+- [x] P1-18  Export only approved MOMs, and finish the review screen's decisions
   PRD: §18.4   Files: backend/app/api/export.py, frontend/src/pages/Review.tsx
   Done when: exporting a draft answers 409, and the review screen offers Word and PDF
   only once the MOM is approved.
-  Also belongs here: when approval is refused because the audit found something, the
-  screen shows the findings with a way to approve anyway (the API already accepts
-  `acknowledge_findings`), not just an error line. Editing the leak away already works
-  as the safe route.
+  Done 2026-10-20. A draft answers 409 with "Approve it before exporting", and the
+  download buttons appear only on an approved MOM. When approval is refused, the screen
+  shows the findings from the 409 and offers "Approve anyway", which retries with
+  `acknowledge_issues`; editing the leak away stays the safe route.
 
 - [ ] P1-19  Let the user choose the microphone
   PRD: §18.1   Files: frontend/src/components/Recorder.tsx, frontend/src/i18n/messages.ts

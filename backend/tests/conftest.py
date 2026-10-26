@@ -10,8 +10,30 @@ from sqlalchemy.pool import NullPool
 from app.core.settings import settings
 from app.db.session import get_session
 from app.main import app
+from app.services.consistency import ConsistencyReport, get_consistency_checker
+from app.services.sensitive import SensitiveReport, get_sensitive_checker
 
 PASSWORD = "correct-horse-42"
+
+
+class _CleanSensitive:
+    def check(self, document: object, secrets: object) -> SensitiveReport:
+        return SensitiveReport()
+
+
+class _CleanConsistency:
+    def check(self, document: object) -> ConsistencyReport:
+        return ConsistencyReport()
+
+
+@pytest.fixture
+def clean_checks() -> Iterator[None]:
+    """Approval asks the model twice. Tests that do not care get clean verdicts."""
+    app.dependency_overrides[get_sensitive_checker] = _CleanSensitive
+    app.dependency_overrides[get_consistency_checker] = _CleanConsistency
+    yield
+    app.dependency_overrides.pop(get_sensitive_checker, None)
+    app.dependency_overrides.pop(get_consistency_checker, None)
 
 
 @pytest.fixture(scope="session")

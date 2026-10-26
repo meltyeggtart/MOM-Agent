@@ -68,6 +68,13 @@ export const messages = {
     notesLabel: 'Internal notes',
     save: 'Save draft',
     approve: 'Approve',
+    approveAnyway: 'Approve anyway',
+    blockedHint:
+      'The MOM was not approved. Fix the points above, or approve anyway if you accept them.',
+    exportLabel: 'Download',
+    exportDocx: 'Word (.docx)',
+    exportPdf: 'PDF',
+    exportHint: 'Only an approved MOM can be downloaded.',
     reopen: 'Reopen as a new version',
     historyLabel: 'Version history',
     versionWord: 'Version',

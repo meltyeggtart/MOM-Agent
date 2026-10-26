@@ -234,17 +234,8 @@ class FakeConsistency:
 
 
 @pytest.fixture(autouse=True)
-def offline_checks() -> Iterator[None]:
-    """Approval now runs two model-backed checks. Neither may reach the network here."""
-    app.dependency_overrides[get_sensitive_checker] = lambda: FakeSensitive(
-        SensitiveReport()
-    )
-    app.dependency_overrides[get_consistency_checker] = lambda: FakeConsistency(
-        ConsistencyReport()
-    )
-    yield
-    app.dependency_overrides.pop(get_sensitive_checker, None)
-    app.dependency_overrides.pop(get_consistency_checker, None)
+def offline_checks(clean_checks: None) -> None:
+    """Approval runs both checks. Every test starts with clean verdicts."""
 
 
 @pytest.fixture
@@ -491,3 +482,31 @@ def test_the_consistency_endpoint_can_fail(
 
     assert response.status_code == 503
 
+
+
+def test_a_draft_cannot_be_exported(client: TestClient) -> None:
+    meeting_id = create_meeting(client)
+    store(client, meeting_id)
+
+    pdf = client.get(f"/meetings/{meeting_id}/moms/internal/export.pdf")
+    docx = client.get(f"/meetings/{meeting_id}/moms/internal/export.docx")
+
+    assert pdf.status_code == 409
+    assert "Approve it before exporting" in pdf.json()["detail"]
+    assert docx.status_code == 409
+
+
+def test_an_approved_mom_exports(client: TestClient) -> None:
+    meeting_id = create_meeting(client)
+    store(client, meeting_id)
+    approved = client.post(f"/meetings/{meeting_id}/moms/internal/approve")
+    assert approved.status_code == 200
+
+    pdf = client.get(f"/meetings/{meeting_id}/moms/internal/export.pdf")
+    docx = client.get(f"/meetings/{meeting_id}/moms/internal/export.docx")
+
+    assert pdf.status_code == 200
+    assert pdf.headers["content-type"] == "application/pdf"
+    assert pdf.content.startswith(b"%PDF")
+    assert docx.status_code == 200
+    assert docx.content.startswith(b"PK")

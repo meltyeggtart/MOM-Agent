@@ -1,6 +1,6 @@
 import { useState } from 'react'
 
-import { apiFetch } from '../api'
+import { apiFetch, errorMessage } from '../api'
 import MomEditor, { type MomDocument } from '../components/MomEditor'
 import { messages } from '../i18n/messages'
 
@@ -32,6 +32,7 @@ function Review() {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
+  const [blocked, setBlocked] = useState(false)
 
   const base = `/meetings/${meetingId}/moms/${audience}`
   const locked = mom?.status === 'approved'
@@ -47,13 +48,11 @@ function Review() {
     setBusy(true)
     setError('')
     setNotice('')
+    setBlocked(false)
     try {
       const response = await apiFetch(url, init)
       if (!response.ok) {
-        const body = (await response.json().catch(() => null)) as {
-          detail?: string
-        } | null
-        setError(body?.detail ?? text.errorFailed)
+        setError((await errorMessage(response)) || text.errorFailed)
         return null
       }
       return (await response.json()) as MomResponse
@@ -83,7 +82,7 @@ function Review() {
     }
   }
 
-  async function approve() {
+  async function approve(acknowledgeIssues = false) {
     if (!draft) return
     const saved = await request(`${base}/draft`, {
       method: 'PUT',
@@ -91,14 +90,52 @@ function Review() {
       body: JSON.stringify(draft),
     })
     if (!saved) return
-    const response = await request(`${base}/approve`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ approved_by: null }),
-    })
-    if (response) {
-      adopt(response)
+
+    setBusy(true)
+    setError('')
+    setNotice('')
+    try {
+      const response = await apiFetch(`${base}/approve`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ acknowledge_issues: acknowledgeIssues }),
+      })
+      if (!response.ok) {
+        setError((await errorMessage(response)) || text.errorFailed)
+        // A 409 here means the checks refused the draft. Only the reviewer can
+        // decide that what they found is acceptable.
+        setBlocked(response.status === 409)
+        return
+      }
+      adopt((await response.json()) as MomResponse)
       setNotice(text.noticeApproved)
+    } catch {
+      setError(text.errorFailed)
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  async function download(format: 'docx' | 'pdf') {
+    setBusy(true)
+    setError('')
+    setNotice('')
+    try {
+      const response = await apiFetch(`${base}/export.${format}`)
+      if (!response.ok) {
+        setError((await errorMessage(response)) || text.errorFailed)
+        return
+      }
+      const url = URL.createObjectURL(await response.blob())
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `mom-${meetingId}-${audience}.${format}`
+      link.click()
+      URL.revokeObjectURL(url)
+    } catch {
+      setError(text.errorFailed)
+    } finally {
+      setBusy(false)
     }
   }
 
@@ -228,13 +265,51 @@ function Review() {
             <button type="button" onClick={save} disabled={busy || locked}>
               {text.save}
             </button>
-            <button type="button" onClick={approve} disabled={busy || locked}>
+            <button
+              type="button"
+              onClick={() => approve()}
+              disabled={busy || locked}
+            >
               {text.approve}
             </button>
             <button type="button" onClick={reopen} disabled={busy || !locked}>
               {text.reopen}
             </button>
           </div>
+
+          {blocked && (
+            <section aria-label={text.blockedHint}>
+              <p>{text.blockedHint}</p>
+              <button
+                type="button"
+                onClick={() => approve(true)}
+                disabled={busy || locked}
+              >
+                {text.approveAnyway}
+              </button>
+            </section>
+          )}
+
+          {locked && (
+            <section aria-label={text.exportLabel}>
+              <h3>{text.exportLabel}</h3>
+              <p>{text.exportHint}</p>
+              <button
+                type="button"
+                onClick={() => download('docx')}
+                disabled={busy}
+              >
+                {text.exportDocx}
+              </button>
+              <button
+                type="button"
+                onClick={() => download('pdf')}
+                disabled={busy}
+              >
+                {text.exportPdf}
+              </button>
+            </section>
+          )}
 
           <section aria-label={text.historyLabel}>
             <h3>{text.historyLabel}</h3>

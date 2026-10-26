@@ -3,11 +3,12 @@
 import uuid
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Response
+from fastapi import APIRouter, Depends, HTTPException, Response, status
 from sqlalchemy.orm import Session
 
 from app.api.auth import CurrentUser
 from app.api.mom import current_version, load_mom
+from app.db.models import MomStatus
 from app.db.session import get_session
 from app.schemas.mom import Audience, MomDocument
 from app.services.documents import to_docx, to_pdf
@@ -26,6 +27,13 @@ def _document(
     session: Session, meeting_id: uuid.UUID, audience: Audience, owner_id: uuid.UUID
 ) -> MomDocument:
     mom = load_mom(session, meeting_id, audience, owner_id)
+    if mom.status != MomStatus.approved:
+        # A draft is still being edited. Handing it out would circulate a version
+        # nobody signed off on, which is exactly what review exists to prevent.
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="The MOM is still a draft. Approve it before exporting.",
+        )
     return MomDocument.model_validate(current_version(mom).content)
 
 

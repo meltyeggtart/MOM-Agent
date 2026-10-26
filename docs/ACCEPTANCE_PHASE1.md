@@ -79,6 +79,9 @@ second run passes.
 - 2026-10-20, P1-17: gap 2 is closed. Approval also compares the three language versions
   and refuses when they disagree, naming the field and the values. Both checks answer in
   one reply. Gap 3 onwards are still open.
+- 2026-10-20, P1-18: gap 3 is closed. Export answers 409 on a draft, the review screen
+  downloads Word and PDF only after approval, and a refused approval shows the findings
+  with an "Approve anyway" button. Gaps 4 and 5 are still open.
 
 ## What this run does not cover
 
