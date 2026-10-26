@@ -228,10 +228,15 @@ record the change in PROGRESS.md when it does.
   shows the findings from the 409 and offers "Approve anyway", which retries with
   `acknowledge_issues`; editing the leak away stays the safe route.
 
-- [ ] P1-19  Let the user choose the microphone
+- [x] P1-19  Let the user choose the microphone
   PRD: §18.1   Files: frontend/src/components/Recorder.tsx, frontend/src/i18n/messages.ts
   Done when: the input devices are listed, the chosen one is used for recording, and
   the choice survives a pause and resume.
+  Done 2026-10-20. The recording screen lists the audio inputs, keeps "System default"
+  first, and records from the chosen one by exact device id. Names stay hidden until the
+  browser may use the microphone, and a hint says so. The picker is locked while a
+  recording runs, because a stream keeps the microphone it started with. A device that
+  disappears falls back to the default; a device chosen and then unplugged reports it.
 
 - [ ] P1-20  Show the AI processing notice on the recording screen
   PRD: §18.5, §11.2   Files: frontend/src/components/Recorder.tsx, frontend/src/i18n/messages.ts

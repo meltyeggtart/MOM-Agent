@@ -146,6 +146,14 @@ Development wiring (since P1-14):
   that calls the model answers 503 "must be set", which looks like an outage but is the
   process missing its credentials.
 
+Microphone (since P1-19):
+- This container has no input device, so the recorder cannot be exercised by hand. Real
+  Chromium with a fake capture device can: `/usr/bin/chromium` with
+  `--use-fake-device-for-media-stream --use-fake-ui-for-media-stream`, which exposes
+  "Fake Audio Input 1" and friends. Playwright is not installed; `python3 -m venv` plus
+  `pip install playwright` in a scratch directory drives that browser through
+  `executable_path="/usr/bin/chromium"` without downloading another one.
+
 Git:
 - `origin` holds no credential, so a push stops at "Username for 'https://github.com'"
   and waits. Put the token in the remote once per session:

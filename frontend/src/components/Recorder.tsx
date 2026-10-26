@@ -1,11 +1,15 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { messages } from '../i18n/messages'
 
 const text = messages.recorder
 
 type Status = 'idle' | 'starting' | 'recording' | 'paused' | 'stopped'
-type ErrorKind = 'unsupported' | 'permissionDenied' | 'unavailable'
+type ErrorKind =
+  | 'unsupported'
+  | 'permissionDenied'
+  | 'unavailable'
+  | 'deviceMissing'
 
 const statusText: Record<Status, string> = {
   idle: text.statusIdle,
@@ -28,6 +32,10 @@ const errorText: Record<ErrorKind, { message: string; guidance: string }> = {
     message: text.errorUnavailable,
     guidance: text.errorUnavailableGuidance,
   },
+  deviceMissing: {
+    message: text.errorDeviceMissing,
+    guidance: text.errorDeviceMissingGuidance,
+  },
 }
 
 function formatElapsed(totalSeconds: number): string {
@@ -45,6 +53,8 @@ function Recorder() {
   const [elapsedSeconds, setElapsedSeconds] = useState(0)
   const [audioUrl, setAudioUrl] = useState<string | null>(null)
   const [errorKind, setErrorKind] = useState<ErrorKind | null>(null)
+  const [devices, setDevices] = useState<MediaDeviceInfo[]>([])
+  const [deviceId, setDeviceId] = useState('')
 
   const recorderRef = useRef<MediaRecorder | null>(null)
   const streamRef = useRef<MediaStream | null>(null)
@@ -64,6 +74,32 @@ function Recorder() {
       if (audioUrlRef.current !== null) URL.revokeObjectURL(audioUrlRef.current)
     }
   }, [])
+
+  const refreshDevices = useCallback(async () => {
+    const media = navigator.mediaDevices
+    if (media?.enumerateDevices === undefined) return
+    const inputs = (await media.enumerateDevices()).filter(
+      (device) => device.kind === 'audioinput',
+    )
+    if (!mountedRef.current) return
+    setDevices(inputs)
+    // A chosen microphone can leave while the page is open, so fall back to the
+    // system default rather than keeping a device that is no longer there.
+    setDeviceId((current) =>
+      current !== '' && !inputs.some((device) => device.deviceId === current)
+        ? ''
+        : current,
+    )
+  }, [])
+
+  useEffect(() => {
+    void refreshDevices()
+    const media = navigator.mediaDevices
+    if (media?.addEventListener === undefined) return
+    const onChange = () => void refreshDevices()
+    media.addEventListener('devicechange', onChange)
+    return () => media.removeEventListener('devicechange', onChange)
+  }, [refreshDevices])
 
   function stopTimer() {
     if (timerRef.current !== null) {
@@ -87,8 +123,11 @@ function Recorder() {
 
     setStatus('starting')
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: deviceId === '' ? true : { deviceId: { exact: deviceId } },
+      })
       streamRef.current = stream
+      void refreshDevices()
       const recorder = new MediaRecorder(stream)
 
       chunksRef.current = []
@@ -123,11 +162,14 @@ function Recorder() {
       streamRef.current?.getTracks().forEach((track) => track.stop())
       streamRef.current = null
       setStatus('idle')
-      setErrorKind(
-        error instanceof DOMException && error.name === 'NotAllowedError'
-          ? 'permissionDenied'
-          : 'unavailable',
-      )
+      const name = error instanceof DOMException ? error.name : ''
+      if (name === 'OverconstrainedError') {
+        // The exact device is gone; the list has to catch up before a retry works.
+        void refreshDevices()
+        setErrorKind('deviceMissing')
+        return
+      }
+      setErrorKind(name === 'NotAllowedError' ? 'permissionDenied' : 'unavailable')
     }
   }
 
@@ -153,11 +195,32 @@ function Recorder() {
   }
 
   const canStop = status === 'recording' || status === 'paused'
+  const picking = status === 'starting' || status === 'recording' || status === 'paused'
 
   return (
     <section>
       <h3>{text.heading}</h3>
 
+      <label>
+        {text.microphoneLabel}
+        <select
+          value={deviceId}
+          onChange={(event) => setDeviceId(event.target.value)}
+          // A stream keeps the microphone it started with, so changing this
+          // mid-recording would promise something it cannot do.
+          disabled={picking}
+        >
+          <option value="">{text.microphoneDefault}</option>
+          {devices.map((device, index) => (
+            <option key={`${index}-${device.deviceId}`} value={device.deviceId}>
+              {device.label || `${text.microphoneFallback} ${index + 1}`}
+            </option>
+          ))}
+        </select>
+      </label>
+      {devices.every((device) => device.label === '') && (
+        <p>{text.microphoneHint}</p>
+      )}
       <div role="group" aria-label={text.controlsLabel}>
         {(status === 'idle' || status === 'stopped') && (
           <button type="button" onClick={() => void startRecording()}>

@@ -82,6 +82,10 @@ second run passes.
 - 2026-10-20, P1-18: gap 3 is closed. Export answers 409 on a draft, the review screen
   downloads Word and PDF only after approval, and a refused approval shows the findings
   with an "Approve anyway" button. Gaps 4 and 5 are still open.
+- 2026-10-20, P1-19: gap 4 is closed. The recording screen lists the microphones and
+  records from the chosen one, and the choice holds through pause and resume. Verified in
+  Chromium with a fake capture device, since this container has no real microphone. Gap 5
+  is still open.
 
 ## What this run does not cover
 

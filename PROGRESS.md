@@ -1,11 +1,11 @@
 # Progress
 
 ## Current state
-Phase: P1. Last done: P1-18 (export waits for approval; the screen can approve anyway)
-Next: P1-19 (let the user choose the microphone)
+Phase: P1. Last done: P1-19 (the recording screen lets the user pick a microphone)
+Next: P1-20 (the AI processing notice)
 Blockers: none
 Open: P1-15, the Phase 1 acceptance run, failed on five items on 2026-10-20 and is
-tracked as P1-19 to P1-20 (P1-16 to P1-18 closed). See docs/ACCEPTANCE_PHASE1.md.
+tracked as P1-20 (P1-16 to P1-19 closed). See docs/ACCEPTANCE_PHASE1.md.
 Open decisions: the production LLM is a target, not a fact. Until 2026-10-20 the
 extractor runs through the Messages-compatible gateway present in this environment,
 which ignores the model name and serves deepseek-flash. Azure OpenAI replaces it before
@@ -53,6 +53,40 @@ Live transcription and live translation change none of this. They decide whether
 processing happens during the meeting or after it, not where it happens.
 
 ## Log (newest first)
+
+### P1-19 — 2026-10-20 (done)
+
+The recording screen now lets the user choose the microphone instead of always taking
+whatever the browser prefers.
+
+- `enumerateDevices` fills a list of audio inputs, with "System default" first so the
+  common case stays one click. A chosen device is requested by exact id:
+  `{audio: {deviceId: {exact: id}}}`, which fails rather than quietly recording from a
+  different microphone.
+- Device names are hidden until the browser may use the microphone. The list is
+  therefore refreshed on mount, on `devicechange`, and once a stream is live — the last
+  one is what turns "Microphone 1" into "Fake Audio Input 1" in the same session. A hint
+  explains the blank names, and disappears once they are real.
+- The picker is disabled while starting, recording or paused. A live stream keeps the
+  microphone it opened with, so letting the choice change would promise something the
+  code cannot do.
+- A device that disappears while the page is open falls back to the default instead of
+  staying selected. Choosing one and then unplugging it answers OverconstrainedError,
+  which has its own message rather than the generic "No microphone was found".
+- Pause and resume reuse the same recorder and stream, so the choice necessarily
+  survives them; the check below confirms it rather than assuming it.
+
+Verified in real Chromium with a fake capture device
+(`--use-fake-device-for-media-stream`). Before permission the list held only "System
+default" and the hint was visible. After one recording the list read "Fake Default Audio
+Input, Fake Audio Input 1, Fake Audio Input 2" and the hint was gone. Recording from a
+physical fake id (not the `default` alias) worked, the picker was disabled while
+recording, the same device was still selected after pause and resume, and the result was
+a 36 KB audio file. This is the first time this container could exercise the microphone
+at all; the acceptance run had no input device.
+
+No automated test: the frontend has no test runner yet, and this logic is browser API
+orchestration that a unit test would only re-assert through mocks.
 
 ### P1-18 — 2026-10-20 (done)
 

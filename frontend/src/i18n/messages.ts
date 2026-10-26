@@ -133,5 +133,12 @@ export const messages = {
     errorUnavailable: 'No microphone was found.',
     errorUnavailableGuidance:
       'Connect a microphone or headset, and check that no other app is using it, then start again.',
+    errorDeviceMissing: 'That microphone is not available.',
+    errorDeviceMissingGuidance:
+      'It may have been unplugged. Pick another microphone in the list and start again.',
+    microphoneLabel: 'Microphone',
+    microphoneDefault: 'System default',
+    microphoneFallback: 'Microphone',
+    microphoneHint: 'Names appear once the browser may use the microphone.',
   },
 } as const
