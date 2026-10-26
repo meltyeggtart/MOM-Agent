@@ -136,6 +136,11 @@ Development wiring (since P1-14):
 - The platform's service worker on `localhost:5173` also answers `/api/auth/me`, so a
   browser session there loses the sign-in on reload. The dev server therefore defaults
   to 5174 (`VITE_DEV_PORT` overrides it).
+- PostgreSQL 17 is a local cluster here, not a container: `sudo pg_ctlcluster 17 main
+  start`. It does stop between long sessions; a 500 that reports "connection refused"
+  on 5432 means it stopped, not that the code broke.
+- Start the API and the dev server with `setsid nohup ... &`. A plain background job is
+  reaped when the tool call that started it ends, which looks like a crash.
 
 ## Conventions (naming, error handling, logging, i18n EN/ZH)
 - Naming: snake_case in Python, camelCase in TypeScript, kebab-case for file names.

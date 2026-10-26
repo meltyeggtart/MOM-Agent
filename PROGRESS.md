@@ -2,8 +2,10 @@
 
 ## Current state
 Phase: P1. Last done: P1-14 (accounts and sessions)
-Next: P1-15 (Phase 1 acceptance run)
+Next: P1-16 (audit an external MOM before approval)
 Blockers: none
+Open: P1-15, the Phase 1 acceptance run, failed on five items on 2026-10-20 and is
+tracked as P1-16 to P1-20. See docs/ACCEPTANCE_PHASE1.md.
 Open decisions: the production LLM is a target, not a fact. Until 2026-10-20 the
 extractor runs through the Messages-compatible gateway present in this environment,
 which ignores the model name and serves deepseek-flash. Azure OpenAI replaces it before
@@ -51,6 +53,37 @@ Live transcription and live translation change none of this. They decide whether
 processing happens during the meeting or after it, not where it happens.
 
 ## Log (newest first)
+
+### P1-15 — 2026-10-20 (first run, open)
+
+Ran the Phase 1 acceptance list against §18.1, §18.4 and §18.5. Full table with
+evidence in `docs/ACCEPTANCE_PHASE1.md`. Result: 7 pass, 5 fail, 2 blocked, 2 not
+applicable. The step stays open; the five failures became P1-16 to P1-20.
+
+What passed, tested through the UI and the API as a user would: creating a meeting
+with full metadata, three languages in one MOM document, separate internal and
+external MOMs, editing and approving with a version history, exported Word and PDF,
+one account unable to read another's meeting (404) or an anonymous caller (401), and
+recording status visible with a clear message when no microphone exists.
+
+What failed, and it is worth being blunt about two of them. The external-content
+audit and the bilingual consistency check both exist as tested services and **nothing
+calls them**. An external MOM can be approved today without either check ever
+running. Export also ignores approval, so a draft leaves the app as a finished file,
+and the review screen has no export control at all. There is no microphone selector,
+though §18.1 asks for one, and no AI processing notice, which §11.2 and §18.5 ask for.
+
+Two items cannot be judged here: secure transmission and storage, and running on
+managed hosting. Nothing is deployed, so both wait on the Azure work.
+
+Blocked by the environment, not by the code: this container has no microphone, so
+start, pause, resume and stop were never observed working end to end. The code has
+them, and the failure path (no device) is handled well, but a second run on a machine
+with a microphone is needed before those controls can be called verified.
+
+Also found while running: PostgreSQL had stopped, and background servers started
+without `setsid` were reaped between commands. Both are sandbox habits, now in
+AGENTS.md.
 
 ### P1-14 — 2026-10-20 (done)
 Did: accounts and sessions. `app/core/security.py` hashes passwords with PBKDF2 and

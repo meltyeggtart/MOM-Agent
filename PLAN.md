@@ -198,6 +198,36 @@ record the change in PROGRESS.md when it does.
   PRD: §18   Files: docs/ACCEPTANCE_PHASE1.md
   Done when: checklist passed and logged.
   Skip the guest-data item of §18.5 (guest mode dropped 2026-10-15).
+  First run 2026-10-20: 7 pass, 5 fail, 2 blocked, 2 not applicable. Still open.
+  The five failures are P1-16 to P1-20 below; re-run this step after they close.
+
+- [ ] P1-16  Audit an external MOM for internal content before it is approved
+  PRD: §18.4   Files: backend/app/api/mom.py, backend/tests/test_mom_api.py
+  Done when: approving an external MOM runs the check and a finding blocks approval
+  until the user acknowledges it. `app/services/sensitive.py` exists and is never
+  called today; this step connects it.
+
+- [ ] P1-17  Check the three language versions agree before approval
+  PRD: §18.4   Files: backend/app/api/mom.py, backend/tests/test_mom_api.py
+  Done when: a material difference between versions is reported on the read and
+  blocks approval, or is confirmed with one explicit acknowledgement.
+  Same shape as P1-16: `app/services/consistency.py` exists and is never called.
+
+- [ ] P1-18  Export only approved MOMs, and add the export control to the review screen
+  PRD: §18.4   Files: backend/app/api/export.py, frontend/src/pages/Review.tsx
+  Done when: exporting a draft answers 409, and the review screen offers Word and PDF
+  only once the MOM is approved.
+
+- [ ] P1-19  Let the user choose the microphone
+  PRD: §18.1   Files: frontend/src/components/Recorder.tsx, frontend/src/i18n/messages.ts
+  Done when: the input devices are listed, the chosen one is used for recording, and
+  the choice survives a pause and resume.
+
+- [ ] P1-20  Show the AI processing notice on the recording screen
+  PRD: §18.5, §11.2   Files: frontend/src/components/Recorder.tsx, frontend/src/i18n/messages.ts
+  Done when: the notice is visible before and during recording, in every interface
+  language.
+
 
 ## Phase 2 — Optional Live Transcription (PRD §13)
 Live Transcription On/Off control, streaming EN/Mandarin text, timestamps and
