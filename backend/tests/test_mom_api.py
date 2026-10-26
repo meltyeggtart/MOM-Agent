@@ -6,6 +6,12 @@ from fastapi.testclient import TestClient
 from app.main import app
 from app.schemas.meeting import Language
 from app.schemas.mom import MomDocument
+from app.services.consistency import (
+    ConsistencyCheckError,
+    ConsistencyReport,
+    Mismatch,
+    get_consistency_checker,
+)
 from app.services.sensitive import (
     Finding,
     SensitiveCheckError,
@@ -199,7 +205,7 @@ def test_languages_must_be_a_subset(client: TestClient) -> None:
     assert response.status_code == 422
 
 
-class FakeChecker:
+class FakeSensitive:
     """Stands in for the model so these tests stay offline and deterministic."""
 
     def __init__(self, outcome: SensitiveReport | Exception) -> None:
@@ -213,15 +219,56 @@ class FakeChecker:
         return self.outcome
 
 
+class FakeConsistency:
+    """Stands in for the model so these tests stay offline and deterministic."""
+
+    def __init__(self, outcome: ConsistencyReport | Exception) -> None:
+        self.outcome = outcome
+        self.calls: list[MomDocument] = []
+
+    def check(self, document: MomDocument) -> ConsistencyReport:
+        self.calls.append(document)
+        if isinstance(self.outcome, Exception):
+            raise self.outcome
+        return self.outcome
+
+
+@pytest.fixture(autouse=True)
+def offline_checks() -> Iterator[None]:
+    """Approval now runs two model-backed checks. Neither may reach the network here."""
+    app.dependency_overrides[get_sensitive_checker] = lambda: FakeSensitive(
+        SensitiveReport()
+    )
+    app.dependency_overrides[get_consistency_checker] = lambda: FakeConsistency(
+        ConsistencyReport()
+    )
+    yield
+    app.dependency_overrides.pop(get_sensitive_checker, None)
+    app.dependency_overrides.pop(get_consistency_checker, None)
+
+
 @pytest.fixture
-def use_checker() -> Iterator[Callable[[SensitiveReport | Exception], FakeChecker]]:
-    def install(outcome: SensitiveReport | Exception) -> FakeChecker:
-        fake = FakeChecker(outcome)
+def use_checker() -> Iterator[Callable[[SensitiveReport | Exception], FakeSensitive]]:
+    def install(outcome: SensitiveReport | Exception) -> FakeSensitive:
+        fake = FakeSensitive(outcome)
         app.dependency_overrides[get_sensitive_checker] = lambda: fake
         return fake
 
     yield install
     app.dependency_overrides.pop(get_sensitive_checker, None)
+
+
+@pytest.fixture
+def use_consistency() -> Iterator[
+    Callable[[ConsistencyReport | Exception], FakeConsistency]
+]:
+    def install(outcome: ConsistencyReport | Exception) -> FakeConsistency:
+        fake = FakeConsistency(outcome)
+        app.dependency_overrides[get_consistency_checker] = lambda: fake
+        return fake
+
+    yield install
+    app.dependency_overrides.pop(get_consistency_checker, None)
 
 
 def leak(excerpt: str = "Our margin is thinner than last quarter.") -> Finding:
@@ -233,7 +280,7 @@ def leak(excerpt: str = "Our margin is thinner than last quarter.") -> Finding:
 
 
 def test_a_flagged_external_mom_is_not_approved(
-    client: TestClient, use_checker: Callable[..., FakeChecker]
+    client: TestClient, use_checker: Callable[..., FakeSensitive]
 ) -> None:
     meeting_id = create_meeting(client)
     store(client, meeting_id)
@@ -248,7 +295,7 @@ def test_a_flagged_external_mom_is_not_approved(
 
 
 def test_an_acknowledged_finding_still_approves(
-    client: TestClient, use_checker: Callable[..., FakeChecker]
+    client: TestClient, use_checker: Callable[..., FakeSensitive]
 ) -> None:
     meeting_id = create_meeting(client)
     store(client, meeting_id)
@@ -257,7 +304,7 @@ def test_an_acknowledged_finding_still_approves(
 
     response = client.post(
         f"/meetings/{meeting_id}/moms/external/approve",
-        json={"acknowledge_findings": True},
+        json={"acknowledge_issues": True},
     )
 
     assert response.status_code == 200
@@ -265,7 +312,7 @@ def test_an_acknowledged_finding_still_approves(
 
 
 def test_a_clean_external_mom_approves_without_a_word(
-    client: TestClient, use_checker: Callable[..., FakeChecker]
+    client: TestClient, use_checker: Callable[..., FakeSensitive]
 ) -> None:
     meeting_id = create_meeting(client)
     store(client, meeting_id, audience="external")
@@ -278,7 +325,7 @@ def test_a_clean_external_mom_approves_without_a_word(
 
 
 def test_the_audit_reads_the_internal_notes(
-    client: TestClient, use_checker: Callable[..., FakeChecker]
+    client: TestClient, use_checker: Callable[..., FakeSensitive]
 ) -> None:
     meeting_id = create_meeting(client)
     internal = payload()
@@ -293,7 +340,7 @@ def test_the_audit_reads_the_internal_notes(
 
 
 def test_the_audit_sees_the_document_it_checks(
-    client: TestClient, use_checker: Callable[..., FakeChecker]
+    client: TestClient, use_checker: Callable[..., FakeSensitive]
 ) -> None:
     meeting_id = create_meeting(client)
     external = payload("external")
@@ -309,7 +356,7 @@ def test_the_audit_sees_the_document_it_checks(
 
 
 def test_an_internal_mom_is_never_audited(
-    client: TestClient, use_checker: Callable[..., FakeChecker]
+    client: TestClient, use_checker: Callable[..., FakeSensitive]
 ) -> None:
     meeting_id = create_meeting(client)
     store(client, meeting_id)
@@ -322,7 +369,7 @@ def test_an_internal_mom_is_never_audited(
 
 
 def test_a_failed_check_blocks_approval(
-    client: TestClient, use_checker: Callable[..., FakeChecker]
+    client: TestClient, use_checker: Callable[..., FakeSensitive]
 ) -> None:
     meeting_id = create_meeting(client)
     store(client, meeting_id, audience="external")
@@ -332,4 +379,115 @@ def test_a_failed_check_blocks_approval(
 
     assert response.status_code == 503
     assert client.get(f"/meetings/{meeting_id}/moms/external").json()["status"] == "draft"
+
+
+
+def mismatch(
+    field: str = "action_items[1].deadline",
+    detail: str = "en says 3 November, id says 10 November",
+) -> Mismatch:
+    return Mismatch(field=field, detail=detail, languages=[Language.en, Language.id])
+
+
+def test_versions_that_disagree_block_approval(
+    client: TestClient, use_consistency: Callable[..., FakeConsistency]
+) -> None:
+    meeting_id = create_meeting(client)
+    store(client, meeting_id)
+    use_consistency(ConsistencyReport(mismatches=[mismatch()]))
+
+    response = client.post(f"/meetings/{meeting_id}/moms/internal/approve")
+
+    assert response.status_code == 409
+    assert "action_items[1].deadline" in response.json()["detail"]
+    assert "3 November" in response.json()["detail"]
+    assert client.get(f"/meetings/{meeting_id}/moms/internal").json()["status"] == "draft"
+
+
+def test_an_acknowledged_mismatch_still_approves(
+    client: TestClient, use_consistency: Callable[..., FakeConsistency]
+) -> None:
+    meeting_id = create_meeting(client)
+    store(client, meeting_id)
+    use_consistency(ConsistencyReport(mismatches=[mismatch()]))
+
+    response = client.post(
+        f"/meetings/{meeting_id}/moms/internal/approve",
+        json={"acknowledge_issues": True},
+    )
+
+    assert response.status_code == 200
+    assert response.json()["status"] == "approved"
+
+
+def test_both_checks_block_in_one_answer(
+    client: TestClient,
+    use_checker: Callable[..., FakeSensitive],
+    use_consistency: Callable[..., FakeConsistency],
+) -> None:
+    meeting_id = create_meeting(client)
+    store(client, meeting_id)
+    store(client, meeting_id, audience="external")
+    use_checker(SensitiveReport(findings=[leak()]))
+    use_consistency(ConsistencyReport(mismatches=[mismatch()]))
+
+    response = client.post(f"/meetings/{meeting_id}/moms/external/approve")
+
+    assert response.status_code == 409
+    detail = response.json()["detail"]
+    assert "may reveal internal information" in detail
+    assert "Our margin is thinner" in detail
+    assert "The language versions disagree" in detail
+
+
+def test_a_failed_comparison_blocks_approval(
+    client: TestClient, use_consistency: Callable[..., FakeConsistency]
+) -> None:
+    meeting_id = create_meeting(client)
+    store(client, meeting_id)
+    use_consistency(ConsistencyCheckError("the model timed out"))
+
+    response = client.post(f"/meetings/{meeting_id}/moms/internal/approve")
+
+    assert response.status_code == 503
+    assert client.get(f"/meetings/{meeting_id}/moms/internal").json()["status"] == "draft"
+
+
+def test_the_comparison_sees_every_version(
+    client: TestClient, use_consistency: Callable[..., FakeConsistency]
+) -> None:
+    meeting_id = create_meeting(client)
+    store(client, meeting_id)
+    checker = use_consistency(ConsistencyReport())
+
+    response = client.post(f"/meetings/{meeting_id}/moms/internal/approve")
+
+    assert response.status_code == 200
+    assert len(checker.calls[0].versions) == 3
+
+
+def test_the_consistency_endpoint_reports_without_approving(
+    client: TestClient, use_consistency: Callable[..., FakeConsistency]
+) -> None:
+    meeting_id = create_meeting(client)
+    store(client, meeting_id)
+    use_consistency(ConsistencyReport(mismatches=[mismatch()]))
+
+    response = client.get(f"/meetings/{meeting_id}/moms/internal/consistency")
+
+    assert response.status_code == 200
+    assert response.json()["mismatches"][0]["field"] == "action_items[1].deadline"
+    assert client.get(f"/meetings/{meeting_id}/moms/internal").json()["status"] == "draft"
+
+
+def test_the_consistency_endpoint_can_fail(
+    client: TestClient, use_consistency: Callable[..., FakeConsistency]
+) -> None:
+    meeting_id = create_meeting(client)
+    store(client, meeting_id)
+    use_consistency(ConsistencyCheckError("no answer"))
+
+    response = client.get(f"/meetings/{meeting_id}/moms/internal/consistency")
+
+    assert response.status_code == 503
 

@@ -1,11 +1,11 @@
 # Progress
 
 ## Current state
-Phase: P1. Last done: P1-16 (external-content audit before approval)
-Next: P1-17 (check the three language versions agree)
+Phase: P1. Last done: P1-17 (language versions checked before approval)
+Next: P1-18 (export only approved MOMs; review screen decisions)
 Blockers: none
 Open: P1-15, the Phase 1 acceptance run, failed on five items on 2026-10-20 and is
-tracked as P1-17 to P1-20 (P1-16 closed). See docs/ACCEPTANCE_PHASE1.md.
+tracked as P1-18 to P1-20 (P1-16 and P1-17 closed). See docs/ACCEPTANCE_PHASE1.md.
 Open decisions: the production LLM is a target, not a fact. Until 2026-10-20 the
 extractor runs through the Messages-compatible gateway present in this environment,
 which ignores the model name and serves deepseek-flash. Azure OpenAI replaces it before
@@ -54,6 +54,37 @@ processing happens during the meeting or after it, not where it happens.
 
 ## Log (newest first)
 
+### P1-17 — 2026-10-20 (done)
+
+The second built-but-unwired check, `consistency.py`, now runs. Approving a MOM compares
+its three language versions and refuses on a material difference.
+
+How it decides and reports:
+
+- The check runs **at approval, for both audiences**, because a wrong deadline matters
+  in the internal minutes too. It does not run on the plain read: that is a model call,
+  and the review screen loads more than once. A reviewer who wants the verdict before
+  deciding can ask `GET /{audience}/consistency`, which returns the report and changes
+  nothing.
+- Both pre-approval checks now answer in one reply. When a leak and a mismatch are both
+  present the reviewer sees both sections in the same 409, so one acknowledgement covers
+  both instead of a second round trip.
+- Any check that cannot produce a verdict answers 503 and approves nothing, as in P1-16.
+- The acknowledgement flag is renamed `acknowledge_issues`, since it now covers either
+  kind of blocker. `acknowledge_findings` never left this branch.
+
+Verified with the model, both directions. A document whose deadline reads 3 November in
+English but 10 November in Mandarin and Indonesian was flagged as
+`action_items[0].deadline` with all three values named; approval was refused and the MOM
+stayed a draft; the acknowledged retry approved. The same document with 3 November
+everywhere came back with no mismatches and approved on the first try, so the prompt is
+not crying wolf.
+
+Seven new tests: mismatch blocks, acknowledged mismatch approves, both checks block in
+one answer, a failed comparison blocks, the checker sees all three versions, and the
+on-demand endpoint reports and fails. The suite is offline: an autouse fixture gives
+every approval test clean fakes, because approval now always calls the model twice.
+
 ### P1-16 — 2026-10-20 (done)
 
 Wired the external-content audit into approval. Before this, `sensitive.py` was a
@@ -68,7 +99,7 @@ The design choices worth knowing:
 - A finding answers **409** with a plain-text list of excerpt and reason, and the MOM
   stays a draft. The text shape is deliberate: the review screen already prints a string
   `detail`, so the reviewer sees which sentence is the problem without a UI change.
-- Re-posting with `{"acknowledge_findings": true}` approves anyway. The acknowledgement
+- Re-posting with `{"acknowledge_issues": true}` approves anyway. The acknowledgement
   is not stored: there is no column for it, and the PRD asks only that the user
   acknowledge. Recording who overrode what is in the parking lot.
 - A check that cannot run answers **503** and approves nothing. Failing closed is the

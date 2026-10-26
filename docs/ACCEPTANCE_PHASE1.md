@@ -74,8 +74,11 @@ second run passes.
 
 - 2026-10-20, P1-16: gap 1 is closed. Approving an external MOM now runs the audit
   against the internal MOM's notes; a finding refuses approval and names the sentence,
-  and an explicit `acknowledge_findings` is needed to proceed. A check that cannot run
-  refuses too. Gap 2 onwards are still open.
+  and an explicit acknowledgement is needed to proceed. A check that cannot run refuses
+  too.
+- 2026-10-20, P1-17: gap 2 is closed. Approval also compares the three language versions
+  and refuses when they disagree, naming the field and the values. Both checks answer in
+  one reply. Gap 3 onwards are still open.
 
 ## What this run does not cover
 

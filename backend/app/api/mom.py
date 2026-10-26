@@ -18,6 +18,12 @@ from app.api.meetings import load_meeting
 from app.db.models import Mom, MomStatus, MomVersion
 from app.db.session import get_session
 from app.schemas.mom import Audience, MomDocument
+from app.services.consistency import (
+    ConsistencyChecker,
+    ConsistencyCheckError,
+    ConsistencyReport,
+    get_consistency_checker,
+)
 from app.services.sensitive import (
     SensitiveChecker,
     SensitiveCheckError,
@@ -98,12 +104,15 @@ def current_version(mom: Mom) -> MomVersion:
 
 
 SensitiveCheckerDep = Annotated[SensitiveChecker, Depends(get_sensitive_checker)]
+ConsistencyCheckerDep = Annotated[
+    ConsistencyChecker, Depends(get_consistency_checker)
+]
 
 
 class ApprovalRequest(BaseModel):
-    """Sent only when the external-content audit has already raised findings."""
+    """Sent only after a pre-approval check has already raised something."""
 
-    acknowledge_findings: bool = False
+    acknowledge_issues: bool = False
 
 
 def _internal_statements(session: Session, meeting_id: uuid.UUID) -> list[str]:
@@ -143,14 +152,39 @@ def _audit_external(
         ) from exc
 
 
-def _findings_message(report: SensitiveReport) -> str:
-    lines = [
-        "The external MOM may reveal internal information and was not approved.",
-        "Edit it, or approve again with acknowledge_findings if these are acceptable:",
-    ]
-    lines.extend(
-        f"- [{finding.language}] {finding.excerpt} ({finding.reason})"
-        for finding in report.findings
+def _check_consistency(
+    document: MomDocument, checker: ConsistencyChecker
+) -> ConsistencyReport:
+    try:
+        return checker.check(document)
+    except ConsistencyCheckError as exc:
+        # Same reasoning as the audit: no verdict means no approval.
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="The language versions could not be compared, so the MOM was not "
+            f"approved: {exc}",
+        ) from exc
+
+
+def _approval_message(
+    findings: SensitiveReport | None, mismatches: ConsistencyReport
+) -> str:
+    lines = ["The MOM was not approved."]
+    if findings is not None and not findings.is_clean:
+        lines.append("It may reveal internal information:")
+        lines.extend(
+            f"- [{finding.language}] {finding.excerpt} ({finding.reason})"
+            for finding in findings.findings
+        )
+    if not mismatches.is_consistent:
+        lines.append("The language versions disagree:")
+        lines.extend(
+            f"- {mismatch.field}: {mismatch.detail} "
+            f"({', '.join(mismatch.languages)})"
+            for mismatch in mismatches.mismatches
+        )
+    lines.append(
+        "Edit the MOM, or approve again with acknowledge_issues if these are acceptable."
     )
     return "\n".join(lines)
 
@@ -203,6 +237,20 @@ def read_mom(
     return MomRead.of(load_mom(session, meeting_id, audience, user.id))
 
 
+@router.get("/{audience}/consistency", response_model=ConsistencyReport)
+def check_consistency(
+    meeting_id: uuid.UUID,
+    audience: Audience,
+    session: SessionDep,
+    user: CurrentUser,
+    consistency: ConsistencyCheckerDep,
+) -> ConsistencyReport:
+    """Compare the versions on demand, without changing the MOM's state."""
+    mom = load_mom(session, meeting_id, audience, user.id)
+    document = MomDocument.model_validate(current_version(mom).content)
+    return _check_consistency(document, consistency)
+
+
 @router.put("/{audience}/draft", response_model=MomRead)
 def update_draft(
     meeting_id: uuid.UUID,
@@ -235,6 +283,7 @@ def approve(
     session: SessionDep,
     user: CurrentUser,
     checker: SensitiveCheckerDep,
+    consistency: ConsistencyCheckerDep,
     request: ApprovalRequest | None = None,
 ) -> MomRead:
     mom = load_mom(session, meeting_id, audience, user.id)
@@ -244,19 +293,24 @@ def approve(
         )
 
     current = current_version(mom)
+    document = MomDocument.model_validate(current.content)
 
+    findings: SensitiveReport | None = None
     if audience is Audience.external:
-        report = _audit_external(
-            MomDocument.model_validate(current.content),
-            _internal_statements(session, meeting_id),
-            checker,
+        findings = _audit_external(
+            document, _internal_statements(session, meeting_id), checker
         )
-        acknowledged = request is not None and request.acknowledge_findings
-        if not report.is_clean and not acknowledged:
-            raise HTTPException(
-                status_code=status.HTTP_409_CONFLICT,
-                detail=_findings_message(report),
-            )
+    mismatches = _check_consistency(document, consistency)
+
+    blocked = (findings is not None and not findings.is_clean) or (
+        not mismatches.is_consistent
+    )
+    acknowledged = request is not None and request.acknowledge_issues
+    if blocked and not acknowledged:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=_approval_message(findings, mismatches),
+        )
 
     current.approved_at = datetime.now(UTC)
     # Taken from the session, not the request, so the trail cannot name someone else.

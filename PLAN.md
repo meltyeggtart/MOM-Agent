@@ -207,14 +207,17 @@ record the change in PROGRESS.md when it does.
   until the user acknowledges it. `app/services/sensitive.py` exists and is never
   called today; this step connects it.
   Done 2026-10-20. Secrets are the internal MOM's notes. A finding answers 409 with the
-  excerpt; `{"acknowledge_findings": true}` approves anyway. A check that cannot run
+  excerpt; `{"acknowledge_issues": true}` approves anyway. A check that cannot run
   answers 503 and nothing is approved.
 
-- [ ] P1-17  Check the three language versions agree before approval
+- [x] P1-17  Check the three language versions agree before approval
   PRD: §18.4   Files: backend/app/api/mom.py, backend/tests/test_mom_api.py
   Done when: a material difference between versions is reported on the read and
   blocks approval, or is confirmed with one explicit acknowledgement.
   Same shape as P1-16: `app/services/consistency.py` exists and is never called.
+  Done 2026-10-20. The check runs at approval for both audiences, and a mismatch blocks
+  with the field and the values that differ. `GET /{audience}/consistency` reports on
+  demand; it is not on the plain read, because that is a model call on every page load.
 
 - [ ] P1-18  Export only approved MOMs, and finish the review screen's decisions
   PRD: §18.4   Files: backend/app/api/export.py, frontend/src/pages/Review.tsx
